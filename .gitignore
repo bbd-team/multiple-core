@@ -1,0 +1,9 @@
+yarn.lock
+node_modules/
+build/
+
+.DS_Store
+.config.js
+report.*.json
+yarn-error.log
+.config*
