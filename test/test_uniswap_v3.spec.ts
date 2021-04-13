@@ -54,6 +54,25 @@ function sortedTokens(
   return compareToken(a, b) < 0 ? [a, b] : [b, a]
 }
 
+function encodePath(path: string[], fees: FeeAmount[]): string {
+  if (path.length != fees.length + 1) {
+    throw new Error('path/fee lengths do not match')
+  }
+
+  let encoded = '0x'
+  for (let i = 0; i < fees.length; i++) {
+    // 20 byte encoding of the address
+    encoded += path[i].slice(2)
+    // 3 byte encoding of the fee
+    encoded += fees[i].toString(16).padStart(2 * 3, '0')
+  }
+  // encode the final token
+  encoded += path[path.length - 1].slice(2)
+
+  return encoded.toLowerCase()
+}
+
+
 
 let address0 = "0x0000000000000000000000000000000000000000";
 
@@ -135,29 +154,21 @@ describe('Test Uniswap V3', () => {
             recipient: wallet1.address,
             deadline: 1,
         }
+
+        // create USDT-BTC medium fee pool
         await NFTPositionManager.createAndInitializePoolIfNecessary(
             t0.address,
             t1.address,
             FeeAmount.MEDIUM,
             encodePriceSqrt(1, 1)
         );
-        console.log(param)
-        await NFTPositionManager.connect(wallet1).mint({
-            token0: t0.address,
-            token1: t1.address,
-            fee: FeeAmount.MEDIUM,
-            tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-            tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-            amount0Desired: 100,
-            amount1Desired: 100,
-            amount0Min: 0,
-            amount1Min: 0,
-            recipient: wallet1.address,
-            deadline: 1,
-        }, {gasLimit: 8000000});
 
-        console.log('hello world2')
+        // add liquidity
+        const position = await NFTPositionManager.connect(wallet1).mint(param, {gasLimit: 8000000});
 
+        // console.log('position tokenId', convertBigNumber(position.tokenId, 1));
+
+        // check my position
         const {
             fee,
             token0,
@@ -171,8 +182,21 @@ describe('Test Uniswap V3', () => {
             feeGrowthInside1LastX128,
         } = await NFTPositionManager.positions(1);
 
-        console.log('hello world')
-
         console.log(fee, token0, token1, tickLower, tickUpper, liquidity, tokensOwed0, tokensOwed1, feeGrowthInside0LastX128,  feeGrowthInside1LastX128);
+
+        // swap
+        await usdt.connect(wallet1).approve(v3Router.address, toTokenAmount('1000', 18));
+        await v3Router.connect(wallet1).exactInput({
+          recipient: wallet1.address,
+          deadline: 10,
+          path: encodePath([usdt.address, btc.address], [FeeAmount.MEDIUM]),
+          amountIn: toTokenAmount('100', 18),
+          amountOutMinimum: 0,
+        });
+
+        // remove liquidity
+        await NFTPositionManager.connect(wallet1).decreaseLiquidity(1, 100, 0, 0, 1);
+        await NFTPositionManager.connect(wallet1).collect(1, wallet1.address, MaxUint128, MaxUint128);
+        await NFTPositionManager.connect(wallet1).burn(1);
     });
 });

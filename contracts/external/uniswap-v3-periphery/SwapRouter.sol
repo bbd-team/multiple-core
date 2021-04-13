@@ -129,7 +129,7 @@ contract SwapRouter is
         external
         payable
         override
-        checkDeadline(params.deadline)
+        // checkDeadline(params.deadline)
         returns (uint256 amountOut)
     {
         while (true) {
