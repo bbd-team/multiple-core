@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 pragma abicoder v2;
-<<<<<<< HEAD
 
 import '../uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
 import '../uniswap-v3-core/libraries/FixedPoint128.sol';
 import '../uniswap-v3-core/libraries/FullMath.sol';
-
-=======
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 import './interfaces/INonfungiblePositionManager.sol';
 import './interfaces/INonfungibleTokenPositionDescriptor.sol';
 import './libraries/PositionKey.sol';

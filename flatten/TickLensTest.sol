@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // SPDX-License-Identifier: GPL-2.0-or-later
 // pragma solidity >=0.5.0;
@@ -41,11 +37,7 @@ interface IUniswapV3PoolImmutables {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -161,11 +153,7 @@ interface IUniswapV3PoolState {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolDerivedState.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -200,11 +188,7 @@ interface IUniswapV3PoolDerivedState {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -310,11 +294,7 @@ interface IUniswapV3PoolActions {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -340,11 +320,7 @@ interface IUniswapV3PoolOwnerActions {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -466,18 +442,6 @@ interface IUniswapV3PoolEvents {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol
-
-// pragma solidity >=0.5.0;
-
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol';
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol
 
 // pragma solidity >=0.5.0;
@@ -488,7 +452,6 @@ interface IUniswapV3PoolEvents {
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title The interface for a Uniswap V3 Pool
 /// @notice A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
@@ -539,11 +502,7 @@ interface ITickLens {
 // pragma solidity >=0.5.0;
 pragma abicoder v2;
 
-<<<<<<< HEAD
-// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // import 'contracts/external/uniswap-v3-periphery/interfaces/ITickLens.sol';
 
@@ -588,11 +547,7 @@ contract TickLens is ITickLens {
 pragma solidity >=0.5.0;
 pragma abicoder v2;
 
-<<<<<<< HEAD
-// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 // import 'contracts/external/uniswap-v3-periphery/lens/TickLens.sol';
 
 /// @title Tick Lens contract

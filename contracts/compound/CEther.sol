@@ -2,7 +2,7 @@ pragma solidity ^0.5.16;
 
 import "./CToken.sol";
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./SafeMath.sol";
 
 /**
  * @title Compound's CEther Contract

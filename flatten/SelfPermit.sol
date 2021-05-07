@@ -246,13 +246,8 @@ interface IERC20PermitAllowed {
 
 pragma solidity >=0.5.0;
 
-<<<<<<< HEAD
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/drafts/IERC20Permit.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/drafts/IERC20Permit.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // import 'contracts/external/uniswap-v3-periphery/interfaces/ISelfPermit.sol';
 // import 'contracts/external/uniswap-v3-periphery/interfaces/external/IERC20PermitAllowed.sol';

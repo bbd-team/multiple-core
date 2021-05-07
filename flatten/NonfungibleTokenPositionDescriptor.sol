@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // SPDX-License-Identifier: GPL-2.0-or-later
 // pragma solidity >=0.5.0;
@@ -41,11 +37,7 @@ interface IUniswapV3PoolImmutables {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -161,11 +153,7 @@ interface IUniswapV3PoolState {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolDerivedState.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -200,11 +188,7 @@ interface IUniswapV3PoolDerivedState {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -310,11 +294,7 @@ interface IUniswapV3PoolActions {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -340,11 +320,7 @@ interface IUniswapV3PoolOwnerActions {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -466,18 +442,6 @@ interface IUniswapV3PoolEvents {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol
-
-// pragma solidity >=0.5.0;
-
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
-// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol';
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol
 
 // pragma solidity >=0.5.0;
@@ -488,7 +452,6 @@ interface IUniswapV3PoolEvents {
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title The interface for a Uniswap V3 Pool
 /// @notice A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
@@ -882,11 +845,7 @@ interface IERC721Enumerable is IERC721 {
 
 // pragma solidity >=0.7.5;
 
-<<<<<<< HEAD
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title ERC721 with permit
 /// @notice Extension to ERC721 that includes a permit function for signature based approvals
@@ -1073,13 +1032,8 @@ library PoolAddress {
 // pragma solidity >=0.7.5;
 pragma abicoder v2;
 
-<<<<<<< HEAD
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol';
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol';
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // import 'contracts/external/uniswap-v3-periphery/interfaces/IERC721Permit.sol';
 // import 'contracts/external/uniswap-v3-periphery/interfaces/IPeripheryImmutableState.sol';
@@ -1362,11 +1316,7 @@ interface IERC20 {
 
 // pragma solidity ^0.7.0;
 
-<<<<<<< HEAD
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title IERC20Metadata
 /// @title Interface for ERC20 Metadata
@@ -1383,11 +1333,7 @@ interface IERC20Metadata is IERC20 {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/libraries/TickMath.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/TickMath.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -1595,11 +1541,7 @@ library TickMath {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/libraries/BitMath.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/BitMath.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.5.0;
 
@@ -1696,11 +1638,7 @@ library BitMath {
 }
 
 
-<<<<<<< HEAD
-// Dependency file: contracts/external/uniswap-v3-core/libraries/FullMath.sol
-=======
 // Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // pragma solidity >=0.4.0;
 
@@ -2260,15 +2198,6 @@ library Base64 {
 
 // pragma solidity >=0.6.0;
 
-<<<<<<< HEAD
-// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
-// import 'contracts/external/uniswap-v3-core/libraries/TickMath.sol';
-// import 'contracts/external/uniswap-v3-core/libraries/BitMath.sol';
-// import 'contracts/external/uniswap-v3-core/libraries/FullMath.sol';
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/utils/Strings.sol';
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/math/SafeMath.sol';
-// import '/opt/mul.finance/node_modules/@openzeppelin/contracts/math/SignedSafeMath.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/TickMath.sol';
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/BitMath.sol';
@@ -2276,7 +2205,6 @@ library Base64 {
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/utils/Strings.sol';
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/math/SafeMath.sol';
 // import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/math/SignedSafeMath.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 // import 'contracts/external/uniswap-v3-periphery/libraries/HexStrings.sol';
 // import 'contracts/external/uniswap-v3-periphery/libraries/Base64.sol';
 
@@ -2636,11 +2564,7 @@ library TokenRatioSortOrder {
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-<<<<<<< HEAD
-// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
-=======
 // import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 // import 'contracts/external/uniswap-lib/SafeERC20Namer.sol';
 
 // import 'contracts/external/uniswap-v3-periphery/libraries/ChainId.sol';

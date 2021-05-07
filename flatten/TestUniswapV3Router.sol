@@ -93,12 +93,8 @@ library TickMath {
     /// @return tick The greatest tick for which the ratio is less than or equal to the input ratio
     function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
         // second inequality must be < because the price can never reach the price at the max tick
-<<<<<<< HEAD
-        require(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO, 'R');
-=======
         require(sqrtPriceX96 >= MIN_SQRT_RATIO, 'R1');
         require(sqrtPriceX96 < MAX_SQRT_RATIO, 'R2');
->>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
         uint256 ratio = uint256(sqrtPriceX96) << 32;
 
         uint256 r = ratio;
