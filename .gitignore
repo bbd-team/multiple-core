@@ -2,7 +2,10 @@ yarn.lock
 node_modules/
 build/
 flatten/
+<<<<<<< HEAD
 
+=======
+>>>>>>> bc63d95c7c65765a2ea8ee338e72eb5ae77528ea
 .DS_Store
 .config.js
 report.*.json
