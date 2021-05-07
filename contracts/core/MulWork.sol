@@ -23,7 +23,6 @@ contract MulWork is Ownable {
 		bool created;
 		uint totalProfit;
 		uint createTime;
-		uint workCnt;
 		uint power;
 		uint lastWorkTime;
 		uint workerId;
@@ -60,7 +59,6 @@ contract MulWork is Ownable {
 			created: true,
 			totalProfit: 0,
 			createTime: block.number,
-			workCnt: 0,
 			power: BasePower,
 			lastWorkTime: 0,
 			workerId: cntOfWorker
@@ -78,7 +76,7 @@ contract MulWork is Ownable {
 	}
 
 	function addInvestAmount(address user, address token, uint amount) external onlyStrategy {
-		
+		invested[msg.sender][token] = invested[msg.sender][token].add(amount);
 	} 
 }
 

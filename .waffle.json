@@ -2,8 +2,8 @@
   "compilerVersion": "./node_modules/solc",
   "outputType": "all",
   "outputHumanReadableAbi": true,
-  "sourceDirectory": "./contracts/external",
-  "compilerAllowedPaths": ["../contracts/external","../contracts/compound"],
+  "sourceDirectory": "./contracts/core",
+  "compilerAllowedPaths": ["../contracts/core"],
   "compilerOptions": {
     "outputSelection": {
       "*": {

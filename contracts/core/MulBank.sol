@@ -70,7 +70,7 @@ contract MulBank is Ownable {
 	function deposit(address token, uint amount) external {
 		require(amount > 0, "INVALID DEPOSIT AMOUNT");
 
-		PoolInfo memory pool = poolInfo[token];
+		PoolInfo storage pool = poolInfo[token];
 
 		pool.shareToken.mint(msg.sender, amount);
 		pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -79,7 +79,7 @@ contract MulBank is Ownable {
 	}
 
 	function withdraw(address token, uint amount) external {
-		PoolInfo memory pool = poolInfo[token];
+		PoolInfo storage pool = poolInfo[token];
 
 		require(pool.shareToken.balanceOf(msg.sender) >= amount, "INVALID WITHDRAW AMOUNT");
         require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");

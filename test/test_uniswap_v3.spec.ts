@@ -93,7 +93,7 @@ describe('Test Uniswap V3', () => {
     const [deployer, wallet1, wallet2, wallet3, wallet4] = provider.getWallets();
 
     let NFTPositionManager: Contract;
-    // let NFTPositionDescriptor: Contract;
+    let NFTPositionDescriptor: Contract;
     let v3Router: Contract;
     let v3Factory: Contract;
     let strategy: Contract;
@@ -181,12 +181,13 @@ describe('Test Uniswap V3', () => {
 
 
 
-    async function deployBankAndExchange() {
+    async function deployBank() {
       console.log("deployBank");
       mulBank = await deployContract(deployer, MulBank);
       await (await mulBank.connect(deployer).initPool(usdt.address)).wait();
       await (await mulBank.connect(deployer).initPool(btc.address)).wait();
       await (await mulBank.connect(deployer).initPool(dai.address)).wait();
+      console.log("complete");
     }
 
     function getLog(x: any, y: any) {
@@ -199,7 +200,7 @@ describe('Test Uniswap V3', () => {
 
     before(async () => {
       // new bn(reserve1.toString())
-      console.log(encodePriceSqrt(1, 10000), encodePriceSqrt(10000, 1));
+      // console.log(encodePriceSqrt(1, 10000), encodePriceSqrt(10000, 1));
         // let u1 = Number(convertBigNumber(encodePriceSqrt(1, 10000)));
         // let u2 = Number(convertBigNumber(encodePriceSqrt(10000, 1)));
 
@@ -209,14 +210,16 @@ describe('Test Uniswap V3', () => {
         weth         = await deployContract(deployer, WETH9);
         v3Factory    = await deployContract(deployer, UniswapV3Factory);
         v3Router     = await deployContract(deployer, SwapRouter, [v3Factory.address, weth.address]);
-        // NFTPositionDescriptor  = await deployContract(deployer, NonfungibleTokenPositionDescriptor, [weth.address]);
+        strategy     = await deployContract(deployer, UniswapV3Strategy, [v3Factory.address]);
+
+        NFTPositionDescriptor  = await deployContract(deployer, NonfungibleTokenPositionDescriptor, [weth.address]);
         NFTPositionManager     = await deployContract(deployer, NonfungiblePositionManager, [v3Factory.address, weth.address, NFTPositionDescriptor.address]);
 
         usdt         = await deployContract(deployer, FixedSupplyToken, ["USDT", "Tether USD", 18, 100000000]);
         dai          = await deployContract(deployer, FixedSupplyToken, ["DAI", "DAI Stable Coin", 18, 100000000]);
         btc          = await deployContract(deployer, FixedSupplyToken, ["BTC", "Bitcoin", 18, 100000000]);
 
-        await deployBankAndExchange();
+        await deployBank();
 
         await usdt.connect(deployer).transfer(wallet1.address, toTokenAmount('1000000', 18));
         await btc.connect(deployer).transfer(wallet1.address, toTokenAmount('1000000', 18));
@@ -242,13 +245,13 @@ describe('Test Uniswap V3', () => {
         await btc.connect(wallet1).approve(mulBank.address, constants.MaxUint256);
         await dai.connect(wallet1).approve(mulBank.address, constants.MaxUint256);
 
-        await usdt.connect(wallet1).approve(mulExchange.address, constants.MaxUint256);
-        await btc.connect(wallet1).approve(mulExchange.address, constants.MaxUint256);
-        await dai.connect(wallet1).approve(mulExchange.address, constants.MaxUint256);
+        await usdt.connect(wallet1).approve(strategy.address, constants.MaxUint256);
+        await btc.connect(wallet1).approve(strategy.address, constants.MaxUint256);
+        await dai.connect(wallet1).approve(strategy.address, constants.MaxUint256);
 
-        await usdt.connect(wallet2).approve(mulExchange.address, constants.MaxUint256);
-        await btc.connect(wallet2).approve(mulExchange.address, constants.MaxUint256);
-        await dai.connect(wallet2).approve(mulExchange.address, constants.MaxUint256);
+        await usdt.connect(wallet2).approve(strategy.address, constants.MaxUint256);
+        await btc.connect(wallet2).approve(strategy.address, constants.MaxUint256);
+        await dai.connect(wallet2).approve(strategy.address, constants.MaxUint256);
 
         await usdt.connect(wallet2).approve(mulBank.address, constants.MaxUint256);
         await btc.connect(wallet2).approve(mulBank.address, constants.MaxUint256);
@@ -370,7 +373,6 @@ describe('Test Uniswap V3', () => {
     async function outputBalance(key: any) {
       console.log(`${getWalletName(key)} balance usdt: ${convertBigNumber(await usdt.balanceOf(getWallet(key).address))} 
         balance btc: ${convertBigNumber(await btc.balanceOf(getWallet(key).address))}
-        share usdt: ${convertBigNumber(await mulBank.getShare(0, getWallet(key).address))}
         bank usdt: ${convertBigNumber(await usdt.balanceOf(mulBank.address))}
         bank btc: ${convertBigNumber(await btc.balanceOf(mulBank.address))}
         `)
