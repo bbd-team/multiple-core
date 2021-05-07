@@ -14,7 +14,8 @@ import ERC20Token from '../build/ERC20.json';
 import TickMathTest from '../build/TickMathTest.json'
 import LiquidityMathTest from '../build/LiquidityAmountsTest.json'
 import MulBank from '../build/MulBank.json';
-import MulExchange from '../build/MulExchange.json';
+import MulWork from '../build/MulWork.json';
+import UniswapV3Strategy from '../build/UniswapV3Strategy.json'
 
 
 import NonfungiblePositionManager from '../build/NonfungiblePositionManager.json';
@@ -92,12 +93,13 @@ describe('Test Uniswap V3', () => {
     const [deployer, wallet1, wallet2, wallet3, wallet4] = provider.getWallets();
 
     let NFTPositionManager: Contract;
-    let NFTPositionDescriptor: Contract;
+    // let NFTPositionDescriptor: Contract;
     let v3Router: Contract;
     let v3Factory: Contract;
-    let v3PoolDeployer: Contract;
-    let tickMath: Contract;
-    let liquidityMath: Contract;
+    let strategy: Contract;
+    // let v3PoolDeployer: Contract;
+    // let tickMath: Contract;
+    // let liquidityMath: Contract;
 
     let mulBank: Contract;
     let mulExchange: Contract;
@@ -152,55 +154,30 @@ describe('Test Uniswap V3', () => {
         }
     }
 
-    async function addFullLiquidity() {
-      const [t0, t1] = sortedTokens(usdt, btc)
-      const param = {
-            token0: t0.address,
-            token1: t1.address,
-            fee: FeeAmount.MEDIUM,
-            tickLower: getMinTick(spacing),
-            tickUpper: getMaxTick(spacing),
-            amount0Desired: toTokenAmount('1000000'),
-            amount1Desired: toTokenAmount('1000000'),
-            amount0Min: 0,
-            amount1Min: 0,
-            recipient: deployer.address,
-            deadline: deadline,
-        }
+    // async function addFullLiquidity() {
+    //   const [t0, t1] = sortedTokens(usdt, btc)
+    //   const param = {
+    //         token0: t0.address,
+    //         token1: t1.address,
+    //         fee: FeeAmount.MEDIUM,
+    //         tickLower: getMinTick(spacing),
+    //         tickUpper: getMaxTick(spacing),
+    //         amount0Desired: toTokenAmount('1000000'),
+    //         amount1Desired: toTokenAmount('1000000'),
+    //         amount0Min: 0,
+    //         amount1Min: 0,
+    //         recipient: deployer.address,
+    //         deadline: deadline,
+    //     }
 
-        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
-        balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
-        `)
-        await (await NFTPositionManager.connect(deployer).mint(param, {gasLimit: 8000000})).wait();
-        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
-        balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
-        `)
-    }
-
-    async function addLimitLiquidity() {
-      const [t0, t1] = sortedTokens(usdt, btc)
-      const param = {
-            token0: t0.address,
-            token1: t1.address,
-            fee: FeeAmount.MEDIUM,
-            tickLower: -3000,
-            tickUpper: 92400,
-            amount0Desired: toTokenAmount('10000'),
-            amount1Desired: toTokenAmount('10000'),
-            amount0Min: 0,
-            amount1Min: 0,
-            recipient: deployer.address,
-            deadline: deadline,
-        }
-
-        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(wallet1.address))} 
-        balance btc: ${convertBigNumber(await btc.balanceOf(wallet1.address))}
-        `)
-        await (await NFTPositionManager.connect(wallet1).mint(param, {gasLimit: 8000000})).wait();
-        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(wallet1.address))} 
-        balance btc: ${convertBigNumber(await btc.balanceOf(wallet1.address))}
-        `)
-    }
+    //     console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
+    //     balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
+    //     `)
+    //     await (await NFTPositionManager.connect(deployer).mint(param, {gasLimit: 8000000})).wait();
+    //     console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
+    //     balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
+    //     `)
+    // }
 
 
 
@@ -208,13 +185,8 @@ describe('Test Uniswap V3', () => {
       console.log("deployBank");
       mulBank = await deployContract(deployer, MulBank);
       await (await mulBank.connect(deployer).initPool(usdt.address)).wait();
-
-      console.log("deploy exchnage");
-
-      mulExchange = await deployContract(deployer, MulExchange, ["MUL Positions NFT-V1", 'MUL-V1-POS']);
-
-      await (await mulBank.connect(deployer).setExchange(mulExchange.address)).wait();
-      await (await mulExchange.connect(deployer).initialize(address0, mulBank.address, v3Router.address, NFTPositionManager.address)).wait();
+      await (await mulBank.connect(deployer).initPool(btc.address)).wait();
+      await (await mulBank.connect(deployer).initPool(dai.address)).wait();
     }
 
     function getLog(x: any, y: any) {
@@ -228,16 +200,16 @@ describe('Test Uniswap V3', () => {
     before(async () => {
       // new bn(reserve1.toString())
       console.log(encodePriceSqrt(1, 10000), encodePriceSqrt(10000, 1));
-        let u1 = Number(convertBigNumber(encodePriceSqrt(1, 10000)));
-        let u2 = Number(convertBigNumber(encodePriceSqrt(10000, 1)));
+        // let u1 = Number(convertBigNumber(encodePriceSqrt(1, 10000)));
+        // let u2 = Number(convertBigNumber(encodePriceSqrt(10000, 1)));
 
-        console.log(getLog(1.0001, encodePriceSqrt(1, 10000)), getLog(1.0001, encodePriceSqrt(10000, 1)));
-        tickMath     = await deployContract(deployer, TickMathTest);
-        liquidityMath     = await deployContract(deployer, LiquidityMathTest);
+        // console.log(getLog(1.0001, encodePriceSqrt(1, 10000)), getLog(1.0001, encodePriceSqrt(10000, 1)));
+        // tickMath     = await deployContract(deployer, TickMathTest);
+        // liquidityMath     = await deployContract(deployer, LiquidityMathTest);
         weth         = await deployContract(deployer, WETH9);
         v3Factory    = await deployContract(deployer, UniswapV3Factory);
         v3Router     = await deployContract(deployer, SwapRouter, [v3Factory.address, weth.address]);
-        NFTPositionDescriptor  = await deployContract(deployer, NonfungibleTokenPositionDescriptor, [weth.address]);
+        // NFTPositionDescriptor  = await deployContract(deployer, NonfungibleTokenPositionDescriptor, [weth.address]);
         NFTPositionManager     = await deployContract(deployer, NonfungiblePositionManager, [v3Factory.address, weth.address, NFTPositionDescriptor.address]);
 
         usdt         = await deployContract(deployer, FixedSupplyToken, ["USDT", "Tether USD", 18, 100000000]);
@@ -284,16 +256,16 @@ describe('Test Uniswap V3', () => {
     });
 
     it('deposit and withdraw', async() => {
-        await (await mulBank.connect(wallet1).deposit(0, toTokenAmount('10000'))).wait();
-        await (await mulBank.connect(wallet2).deposit(0, toTokenAmount('10000'))).wait();
+        await (await mulBank.connect(wallet1).deposit(usdt.address, toTokenAmount('10000'))).wait();
+        await (await mulBank.connect(wallet2).deposit(usdt.address, toTokenAmount('10000'))).wait();
 
         console.log("after deposit");
 
         await outputBalance(1);
         await outputBalance(2);
 
-        await (await mulBank.connect(wallet1).withdraw(0, toTokenAmount('5000'))).wait();
-        await (await mulBank.connect(wallet2).withdraw(0, toTokenAmount('5000'))).wait();
+        await (await mulBank.connect(wallet1).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+        await (await mulBank.connect(wallet2).withdraw(usdt.address, toTokenAmount('5000'))).wait();
 
         console.log("after withdraw");
         await outputBalance(1);
@@ -301,89 +273,89 @@ describe('Test Uniswap V3', () => {
     })  
 
 
-    it('add position', async() => {
-        const [t0, t1] = sortedTokens(usdt, btc)
-        let initPrice = encodePriceSqrt(1, 1);
+    // it('add position', async() => {
+    //     const [t0, t1] = sortedTokens(usdt, btc)
+    //     let initPrice = encodePriceSqrt(1, 1);
 
-        // create USDT-BTC medium fee pool
-        console.log("初始价格usdt:btc 10000: 1");
-        await (await NFTPositionManager.createAndInitializePoolIfNecessary(
-            t0.address,
-            t1.address,
-            FeeAmount.MEDIUM,
-            initPrice
-        )).wait();
+    //     // create USDT-BTC medium fee pool
+    //     console.log("初始价格usdt:btc 10000: 1");
+    //     await (await NFTPositionManager.createAndInitializePoolIfNecessary(
+    //         t0.address,
+    //         t1.address,
+    //         FeeAmount.MEDIUM,
+    //         initPrice
+    //     )).wait();
 
-        console.log("添加流动性 10000: 1");
-        await addFullLiquidity();
+    //     console.log("添加流动性 10000: 1");
+    //     await addFullLiquidity();
 
-        console.log("添加存款 10000u");
-        await depositToBank();
+    //     console.log("添加存款 10000u");
+    //     await depositToBank();
 
-        let pool = v3Factory.getPool(t0.address, t1.address, FeeAmount.MEDIUM);
-        let poolContract = new Contract(pool, UniswapV3Pool.abi, provider);
+    //     let pool = v3Factory.getPool(t0.address, t1.address, FeeAmount.MEDIUM);
+    //     let poolContract = new Contract(pool, UniswapV3Pool.abi, provider);
 
-        const {
-          sqrtPriceX96,
-          tick,
-          observationIndex,
-          observationCardinality,
-          observationCardinalityNext,
-          feeProtocol,
-          unlocked
+    //     const {
+    //       sqrtPriceX96,
+    //       tick,
+    //       observationIndex,
+    //       observationCardinality,
+    //       observationCardinalityNext,
+    //       feeProtocol,
+    //       unlocked
 
-        } = await poolContract.slot0();
+    //     } = await poolContract.slot0();
 
-        console.log(sqrtPriceX96, tick, observationIndex, observationCardinality);
-        await addLimitLiquidity();
-        // console.log("投资100u 100倍杠杆, 买btc");
-        // await (await mulExchange.connect(wallet2).long(usdt.address, btc.address,
-        //  toTokenAmount('100'), toTokenAmount('100'), 0, {gasLimit: 8000000})).wait();
+    //     console.log(sqrtPriceX96, tick, observationIndex, observationCardinality);
+    //     await addLimitLiquidity();
+    //     // console.log("投资100u 100倍杠杆, 买btc");
+    //     // await (await mulExchange.connect(wallet2).long(usdt.address, btc.address,
+    //     //  toTokenAmount('100'), toTokenAmount('100'), 0, {gasLimit: 8000000})).wait();
 
-        // const {
-        //   sqrtPriceX96,
-        //   tick,
-        //   observationIndex,
-        //   observationCardinality,
-        //   observationCardinalityNext,
-        //   feeProtocol,
-        //   unlocked
+    //     // const {
+    //     //   sqrtPriceX96,
+    //     //   tick,
+    //     //   observationIndex,
+    //     //   observationCardinality,
+    //     //   observationCardinalityNext,
+    //     //   feeProtocol,
+    //     //   unlocked
 
-        // } = await poolContract.slot0();
+    //     // } = await poolContract.slot0();
 
-        // console.log(Number(sqrtPriceX96), tick, observationIndex, observationCardinality);
+    //     // console.log(Number(sqrtPriceX96), tick, observationIndex, observationCardinality);
         
 
-        // await outputExchangeBalance();
-        // let balance = await btc.balanceOf(mulExchange.address)
-        // console.log(2);
-        // // let tick2 = await mulExchange.getTick(toTokenAmount("10000"), balance);
-        // // tick = 0
-        // // console.log();
-        // let tick1 = await mulExchange.getTick(balance, toTokenAmount("10000"));
-        // console.log(11, tick, tick1);
-        // tick1 = 92160;
-        // // console.log(await mulExchange.getTick(balance, toTokenAmount("10000")));
-        // await outputBalance(2);
-        // console.log(3);
-        // const param = {
-        //     token0: t0.address,
-        //     token1: t1.address,
-        //     fee: FeeAmount.MEDIUM,
-        //     tickLower: tick1,
-        //     tickUpper: tick1 + spacing,
-        //     amount0Desired: balance,
-        //     amount1Desired: 0,
-        //     amount0Min: balance,
-        //     amount1Min: 0,
-        //     recipient: wallet2.address,
-        //     deadline: deadline,
-        // }
+    //     // await outputExchangeBalance();
+    //     // let balance = await btc.balanceOf(mulExchange.address)
+    //     // console.log(2);
+    //     // // let tick2 = await mulExchange.getTick(toTokenAmount("10000"), balance);
+    //     // // tick = 0
+    //     // // console.log();
+    //     // let tick1 = await mulExchange.getTick(balance, toTokenAmount("10000"));
+    //     // console.log(11, tick, tick1);
+    //     // tick1 = 92160;
+    //     // // console.log(await mulExchange.getTick(balance, toTokenAmount("10000")));
+    //     // await outputBalance(2);
+    //     // console.log(3);
+    //     // const param = {
+    //     //     token0: t0.address,
+    //     //     token1: t1.address,
+    //     //     fee: FeeAmount.MEDIUM,
+    //     //     tickLower: tick1,
+    //     //     tickUpper: tick1 + spacing,
+    //     //     amount0Desired: balance,
+    //     //     amount1Desired: 0,
+    //     //     amount0Min: balance,
+    //     //     amount1Min: 0,
+    //     //     recipient: wallet2.address,
+    //     //     deadline: deadline,
+    //     // }
 
-        // // await outputExchangeBalance();
-        // await (await NFTPositionManager.connect(wallet2).mint(param, {gasLimit: 8000000})).wait();
-        // await outputBalance(2);
-    });
+    //     // // await outputExchangeBalance();
+    //     // await (await NFTPositionManager.connect(wallet2).mint(param, {gasLimit: 8000000})).wait();
+    //     // await outputBalance(2);
+    // });
 
     async function outputExchangeBalance() {
       console.log(`exchange balance usdt: ${convertBigNumber(await usdt.balanceOf(mulExchange.address))} 
