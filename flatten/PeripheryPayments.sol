@@ -109,7 +109,11 @@ interface IPeripheryPayments {
 
 // pragma solidity =0.7.6;
 
+<<<<<<< HEAD
 // import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+=======
+// import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title Interface for WETH9
 interface IWETH9 is IERC20 {
@@ -125,7 +129,11 @@ interface IWETH9 is IERC20 {
 
 // pragma solidity >=0.6.0;
 
+<<<<<<< HEAD
 // import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+=======
+// import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 library TransferHelper {
     /// @notice Transfers tokens from the targeted address to the given destination
@@ -224,7 +232,11 @@ abstract contract PeripheryImmutableState is IPeripheryImmutableState {
 
 pragma solidity >=0.7.5;
 
+<<<<<<< HEAD
 // import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+=======
+// import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol';
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 // import 'contracts/external/uniswap-v3-periphery/interfaces/IPeripheryPayments.sol';
 // import 'contracts/external/uniswap-v3-periphery/interfaces/external/IWETH9.sol';

@@ -1014,7 +1014,11 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712 {
 
 // pragma solidity =0.7.6;
 
+<<<<<<< HEAD
 // import '/opt/mul.finance/node_modules/@openzeppelin/contracts/drafts/ERC20Permit.sol';
+=======
+// import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/drafts/ERC20Permit.sol';
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 contract TestERC20 is ERC20Permit {
     constructor(uint256 amountToMint) ERC20('Test ERC20', 'TEST') ERC20Permit('Test ERC20') {

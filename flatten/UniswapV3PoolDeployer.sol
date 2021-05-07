@@ -671,7 +671,12 @@ library TickMath {
     /// @return tick The greatest tick for which the ratio is less than or equal to the input ratio
     function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
         // second inequality must be < because the price can never reach the price at the max tick
+<<<<<<< HEAD
         require(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO, 'R');
+=======
+        require(sqrtPriceX96 >= MIN_SQRT_RATIO, 'R1');
+        require(sqrtPriceX96 < MAX_SQRT_RATIO, 'R2');
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
         uint256 ratio = uint256(sqrtPriceX96) << 32;
 
         uint256 r = ratio;
@@ -2846,10 +2851,17 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
         IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
+<<<<<<< HEAD
         // if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
         // if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
 
         // emit Mint(msg.sender, recipient, tickLower, tickUpper, amount, amount0, amount1);
+=======
+        if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
+        if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
+
+        emit Mint(msg.sender, recipient, tickLower, tickUpper, amount, amount0, amount1);
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
     }
 
     /// @inheritdoc IUniswapV3PoolActions

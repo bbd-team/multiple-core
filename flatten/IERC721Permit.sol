@@ -162,7 +162,11 @@ interface IERC721 is IERC165 {
 
 pragma solidity >=0.7.5;
 
+<<<<<<< HEAD
 // import '/opt/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol';
+=======
+// import '/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol';
+>>>>>>> cdd91f2e1093fa724d6a2615248c37305852d279
 
 /// @title ERC721 with permit
 /// @notice Extension to ERC721 that includes a permit function for signature based approvals
