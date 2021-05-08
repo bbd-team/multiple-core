@@ -1,0 +1,157 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "claimComp",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "compAccrued",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "getAccountLiquidity",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "getAssetsIn",
+      "outputs": [
+        {
+          "internalType": "contract CToken[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "markets",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "oracle",
+      "outputs": [
+        {
+          "internalType": "contract PriceOracle",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    },
+    "deployedBytecode": {
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"claimComp\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"compAccrued\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"getAccountLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"getAssetsIn\",\"outputs\":[{\"internalType\":\"contract CToken[]\",\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"markets\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"oracle\",\"outputs\":[{\"internalType\":\"contract PriceOracle\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/compound/Lens/CompoundLens.sol\":\"ComptrollerLensInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/compound/CErc20.sol\":{\"keccak256\":\"0xe887c7e213128c72c6437441c716b3702152da92f6bdfcf7a3a57d5afb46f8db\",\"urls\":[\"bzz-raw://d5cc145242a6c2600e132a2685e61ffe1a07b024fcc3fdff136f33c681e46068\",\"dweb:/ipfs/QmV92qk9Z2BveDR4XEmddig5QKx91UehzVx4At46W3B4Tx\"]},\"contracts/compound/CToken.sol\":{\"keccak256\":\"0x3a9977b2f71cfb034173e6996d8e0f393e54e775fd6b9b628231fe7121970843\",\"urls\":[\"bzz-raw://2f2e73a8a02b5ba9559a2798162878b2e6e8f80bb541d5c85794fb13e72a79b9\",\"dweb:/ipfs/QmYDUTVAH6fW8si7MZUQsB2X6gdnH7JZDHA9iF8Mdz4inc\"]},\"contracts/compound/CTokenInterfaces.sol\":{\"keccak256\":\"0x4d15183c467750e614965dab7999d97ac039a691e28b90cbbe99df4a09244492\",\"urls\":[\"bzz-raw://70348fc88c5a3380b79c656bd44ec329415d1d3a2da786af44d478fad965500a\",\"dweb:/ipfs/QmTa48kqGSWJM8iqHey8PYnvm3uBnw3iRH7ib6wnNNc85M\"]},\"contracts/compound/CarefulMath.sol\":{\"keccak256\":\"0x0647348f27e41d22555d99eebd217dee02a4d737df6accd7cce5347a7487c7de\",\"urls\":[\"bzz-raw://08882d26c11a6d240949a5afba79a74694a8b651093c05c5ae4cc359a0181c22\",\"dweb:/ipfs/QmVXb1tDswuhMRNuDLajzohdkvx2kBmqu1Rxn1BAKUfhkV\"]},\"contracts/compound/ComptrollerInterface.sol\":{\"keccak256\":\"0xede7670d2dd7b25d0187aecd2c28b7b5ca7d7c1bdac144fbedecf5d4bdd92a6b\",\"urls\":[\"bzz-raw://ffeffe133548cc3b8e97b040b12ae5e041d84f9b482f45b7d536d78eaf6c1550\",\"dweb:/ipfs/QmWYsBjz19U4aBbJmQ96A5sa23UKZnaS3k8oN8bNTyAUsz\"]},\"contracts/compound/EIP20Interface.sol\":{\"keccak256\":\"0xfd8ed2eac6d0b4d9ee6b32628ba68bae17544b66f190a5f7ce0c6ad024579dc8\",\"urls\":[\"bzz-raw://701be308137fe36f221f1d7c815247a272638df40917e7d1456b3b16e8402897\",\"dweb:/ipfs/QmPDkPoKiWXMjwpGa65JHBjo5NH8AA3q1nMhsewfUZHjpx\"]},\"contracts/compound/EIP20NonStandardInterface.sol\":{\"keccak256\":\"0x9719f12e4b80b51147ac195553a198cf8b0c516e7e4d04fc324a23ed15cbafb2\",\"urls\":[\"bzz-raw://50c3ba49b80106c88b0171390aa4127edc86f7b29607abe3dc6d08eaefebf837\",\"dweb:/ipfs/QmP6AHNmFdwYwWUeHnhYi3drCQy4dpnnqUbkMeU3oAtokj\"]},\"contracts/compound/ErrorReporter.sol\":{\"keccak256\":\"0x5179afb1071c0fd555e5c1f1d2565f72dbe1740cc3dd02f6e52037f150afc5c9\",\"urls\":[\"bzz-raw://691454eb195c6ec77409cf681ef6929c8102e65d25dd563bf2a93c04eaceeb9f\",\"dweb:/ipfs/QmegumxJuZ5yeDmJoahzGfH4EV4d1XFvmH1vNfdcdcrWJi\"]},\"contracts/compound/Exponential.sol\":{\"keccak256\":\"0x6ff054d65a0289dbb43c9f437d6909f9cf1207c9b8f984b3cb8e97a9de76a434\",\"urls\":[\"bzz-raw://2e0ccc4b6f730a11021ea1532a93b2208fbe8a69ab910a04d675839e8b15d46d\",\"dweb:/ipfs/QmNTXA1huhPwFtQHPeQqn9H9tbTdmFXZACaEAzEPQDcWa6\"]},\"contracts/compound/ExponentialNoError.sol\":{\"keccak256\":\"0x7cb184b7cee71a5e707053dfba7eebbd46f11974004028100510ccce19b6694d\",\"urls\":[\"bzz-raw://63f0452c7f317ac3eab83456076701025374dec7c2ead5e890ebc09d760bd9d3\",\"dweb:/ipfs/QmfNuHEXCoaVYk8qwGnAy4iwubQoEq6HV1svzwHRGqBb2V\"]},\"contracts/compound/Governance/Comp.sol\":{\"keccak256\":\"0x539f7158013dd91efd3ad42dc6a56e0f7aebdca06063d40ce7b6e9a981b726a3\",\"urls\":[\"bzz-raw://8d6a3e0999a57ba4395445570dab58dc5e977bbdc5f39bb5a78e9f6986a5499e\",\"dweb:/ipfs/QmP6ndHfRx9ywu7uPPRs8LvUpHTYn1owzLacWyW8sPd5cY\"]},\"contracts/compound/Governance/GovernorAlpha.sol\":{\"keccak256\":\"0x43d07f5b87de08045caeda030fbeddc86123fb0c9c1e17c5f3a935441acb8cfd\",\"urls\":[\"bzz-raw://1bcb975740d23baeb9b081881adb552fa7c7c8ef286bb006881860610ecc4c69\",\"dweb:/ipfs/QmPegk2CaPF5Mt6ZBBcLoezp89qXUxxMUEoPqnQ4AyZzm5\"]},\"contracts/compound/InterestRateModel.sol\":{\"keccak256\":\"0x929282d73c79e6d700ebe79f9fafc1e414b3848acff5a56d6740afd1dc908678\",\"urls\":[\"bzz-raw://77dcd4af0c065447f01358ebd4b35747e8c75963f6cd450df605a3eb62747056\",\"dweb:/ipfs/QmPri5JmuE5KDkgC55eJTEYZHNJJ1kfN5t5WYZRmRFSz6T\"]},\"contracts/compound/Lens/CompoundLens.sol\":{\"keccak256\":\"0x9ebcea4cbcda7e72f4d06c876bd785d30d38d6825682b7ee4f3f6672e6a08dd9\",\"urls\":[\"bzz-raw://accf3149c54b518098ec7878e1fbf2e4fe58c9bd2c09cc8d43c5b1acd1cd0317\",\"dweb:/ipfs/QmcVbkvRDWp8wyPUopps2cjMxBRD23heFrAwyaSeeCWgwE\"]},\"contracts/compound/PriceOracle.sol\":{\"keccak256\":\"0xe79ebc23bba508eb2479e7b3340abf566da1ab62131f106aee1aac3dc53816ef\",\"urls\":[\"bzz-raw://9b4c1daa3dbc6e8f3c9ca3345c93fc72644578ad755e48115014c23e054fdeeb\",\"dweb:/ipfs/QmcuAYQCJRKW6nMAXfPUwqxM6tBLwrbPqmVQs9oYC8Hmmq\"]},\"contracts/compound/SafeMath.sol\":{\"keccak256\":\"0x6653e37ff57a02b7b7f20199bb0fd5685756ced19a67f53328b42c9d2167ffd2\",\"urls\":[\"bzz-raw://1ab0575cc97bfb6c741c4e76fbb36a87fe320458d23dea7b6394259c9356ddcf\",\"dweb:/ipfs/QmbH6Qu2JSAmSgfhUA7gMmp7BBks9BBsufdGepewqpHssf\"]}},\"version\":1}",
+  "bytecode": "",
+  "humanReadableAbi": [
+    "function claimComp(address)",
+    "function compAccrued(address) view returns(uint256)",
+    "function getAccountLiquidity(address) view returns(uint256, uint256, uint256)",
+    "function getAssetsIn(address) view returns(address[])",
+    "function markets(address) view returns(bool, uint256)",
+    "function oracle() view returns(address)"
+  ]
+}

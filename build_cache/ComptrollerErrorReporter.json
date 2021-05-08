@@ -1,0 +1,48 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "error",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "info",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "detail",
+          "type": "uint256"
+        }
+      ],
+      "name": "Failure",
+      "type": "event"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "linkReferences": {},
+      "object": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820c80b26af0edbc7b777f9cfe1f270c79cb0ed2da1f703b7eb25390acd8f18fd4064736f6c63430005110032",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 0xC8 SIGNEXTEND 0x26 0xAF 0xE 0xDB 0xC7 0xB7 PUSH24 0xF9CFE1F270C79CB0ED2DA1F703B7EB25390ACD8F18FD4064 PUSH20 0x6F6C634300051100320000000000000000000000 ",
+      "sourceMap": "26:2281:23:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;26:2281:23;;;;;;;"
+    },
+    "deployedBytecode": {
+      "linkReferences": {},
+      "object": "6080604052600080fdfea265627a7a72315820c80b26af0edbc7b777f9cfe1f270c79cb0ed2da1f703b7eb25390acd8f18fd4064736f6c63430005110032",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 0xC8 SIGNEXTEND 0x26 0xAF 0xE 0xDB 0xC7 0xB7 PUSH24 0xF9CFE1F270C79CB0ED2DA1F703B7EB25390ACD8F18FD4064 PUSH20 0x6F6C634300051100320000000000000000000000 ",
+      "sourceMap": "26:2281:23:-;;;;;"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"error\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"info\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"detail\",\"type\":\"uint256\"}],\"name\":\"Failure\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/compound/ErrorReporter.sol\":\"ComptrollerErrorReporter\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/compound/ErrorReporter.sol\":{\"keccak256\":\"0x5179afb1071c0fd555e5c1f1d2565f72dbe1740cc3dd02f6e52037f150afc5c9\",\"urls\":[\"bzz-raw://691454eb195c6ec77409cf681ef6929c8102e65d25dd563bf2a93c04eaceeb9f\",\"dweb:/ipfs/QmegumxJuZ5yeDmJoahzGfH4EV4d1XFvmH1vNfdcdcrWJi\"]}},\"version\":1}",
+  "bytecode": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820c80b26af0edbc7b777f9cfe1f270c79cb0ed2da1f703b7eb25390acd8f18fd4064736f6c63430005110032",
+  "humanReadableAbi": [
+    "event Failure(uint256 error, uint256 info, uint256 detail)"
+  ]
+}

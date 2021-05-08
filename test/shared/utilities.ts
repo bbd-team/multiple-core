@@ -1,9 +1,9 @@
 import bn from 'bignumber.js'
 import { BigNumber, BigNumberish, constants, Contract, ContractTransaction, utils, Wallet } from 'ethers'
-import TestUniswapV3Callee from '../../build/TestUniswapV3Callee.json'
-import TestUniswapV3Router from '../../build/TestUniswapV3Router.json'
-import MockTimeUniswapV3Pool from '../../build/MockTimeUniswapV3Pool.json'
-import TestERC20 from '../../build/TestERC20.json'
+import TestUniswapV3Callee from '../../build_cache/TestUniswapV3Callee.json'
+import TestUniswapV3Router from '../../build_cache/TestUniswapV3Router.json'
+import MockTimeUniswapV3Pool from '../../build_cache/MockTimeUniswapV3Pool.json'
+import TestERC20 from '../../build_cache/TestERC20.json'
 
 export const MaxUint128 = BigNumber.from(2).pow(128).sub(1)
 

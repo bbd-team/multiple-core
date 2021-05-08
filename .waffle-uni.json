@@ -3,6 +3,7 @@
   "outputType": "all",
   "outputHumanReadableAbi": true,
   "sourceDirectory": "./contracts/external",
+  "outputDirectory": "./build_cache/",
   "compilerOptions": {
     "outputSelection": {
       "*": {

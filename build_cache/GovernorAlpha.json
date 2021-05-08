@@ -1,0 +1,38 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "proposalCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    },
+    "deployedBytecode": {
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"proposalCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{\"proposalCount()\":{\"notice\":\"The total number of proposals\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/compound/Governance/GovernorBravoInterfaces.sol\":\"GovernorAlpha\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/compound/Governance/GovernorBravoInterfaces.sol\":{\"keccak256\":\"0x5fe535b7e3929a6d55e8157ea3c893bdc364fed7347085fcf844d735a55cc1da\",\"urls\":[\"bzz-raw://fc3cbcbe2eaa83c03ce31d5729730d0bc3d9b0b7bc4dc0531197b4faf664b449\",\"dweb:/ipfs/QmY4uY2wjpzXK4KSZm3bn6UnRdwhteaByxcLQ473mcAQMU\"]}},\"version\":1}",
+  "bytecode": "",
+  "humanReadableAbi": [
+    "function proposalCount() returns(uint256)"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "abi": [],
+  "evm": {
+    "bytecode": {
+      "linkReferences": {},
+      "object": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a723158204694c425ed5f5590fce3de48f6a571741ba4a791f1586e14574ee879058de5a464736f6c63430005110032",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 CHAINID SWAP5 0xC4 0x25 0xED 0x5F SSTORE SWAP1 0xFC 0xE3 0xDE 0x48 0xF6 0xA5 PUSH18 0x741BA4A791F1586E14574EE879058DE5A464 PUSH20 0x6F6C634300051100320000000000000000000000 ",
+      "sourceMap": "243:1949:10:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;243:1949:10;;;;;;;"
+    },
+    "deployedBytecode": {
+      "linkReferences": {},
+      "object": "6080604052600080fdfea265627a7a723158204694c425ed5f5590fce3de48f6a571741ba4a791f1586e14574ee879058de5a464736f6c63430005110032",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 CHAINID SWAP5 0xC4 0x25 0xED 0x5F SSTORE SWAP1 0xFC 0xE3 0xDE 0x48 0xF6 0xA5 PUSH18 0x741BA4A791F1586E14574EE879058DE5A464 PUSH20 0x6F6C634300051100320000000000000000000000 ",
+      "sourceMap": "243:1949:10:-;;;;;"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"author\":\"Compound\",\"methods\":{},\"title\":\"Careful Math\"},\"userdoc\":{\"methods\":{},\"notice\":\"Derived from OpenZeppelin's SafeMath library        https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol\"}},\"settings\":{\"compilationTarget\":{\"contracts/compound/CarefulMath.sol\":\"CarefulMath\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/compound/CarefulMath.sol\":{\"keccak256\":\"0x0647348f27e41d22555d99eebd217dee02a4d737df6accd7cce5347a7487c7de\",\"urls\":[\"bzz-raw://08882d26c11a6d240949a5afba79a74694a8b651093c05c5ae4cc359a0181c22\",\"dweb:/ipfs/QmVXb1tDswuhMRNuDLajzohdkvx2kBmqu1Rxn1BAKUfhkV\"]}},\"version\":1}",
+  "bytecode": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a723158204694c425ed5f5590fce3de48f6a571741ba4a791f1586e14574ee879058de5a464736f6c63430005110032",
+  "humanReadableAbi": []
+}
