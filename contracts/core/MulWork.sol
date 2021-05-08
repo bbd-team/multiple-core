@@ -35,6 +35,7 @@ contract MulWork is Ownable {
 	uint public cntOfWorker;
 
 	event AccountCreated(address indexed user);
+	event SetStrategy(address indexed strategy);
 
 	constructor(IERC20 _gpToken, IERC20 _mulToken, IMulBank _bank) {
 		GPToken = _gpToken;
@@ -49,6 +50,7 @@ contract MulWork is Ownable {
 
     function setStrategy(address _strategy) onlyOwner external {
     	strategy = _strategy;
+		emit SetStrategy(strategy);
     }
 
 	function createAccount() external {
