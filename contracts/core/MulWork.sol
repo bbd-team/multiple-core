@@ -55,7 +55,7 @@ contract MulWork is Ownable {
 
 	function createAccount() external {
 		require(!workers[msg.sender].created, "ALREADY CREATED");
-		GPToken.safeTransferFrom(msg.sender, address(0), 1);
+		// GPToken.safeTransferFrom(msg.sender, address(this), 1);
 		cntOfWorker++;
 		workers[msg.sender] = Worker({
 			created: true,
@@ -71,6 +71,7 @@ contract MulWork is Ownable {
 
 	function getRemainQuota(address user, address token) external view returns(uint) {
 		(,,,,uint total) = bank.poolInfo(token);
+		require(total > 0, "NO DEPOSIT AMOUNT");
 		Worker memory worker = workers[user];
 		uint quota = total.mul(worker.power).div(totalPower);
 		uint investedAmount = invested[msg.sender][token];
@@ -78,7 +79,7 @@ contract MulWork is Ownable {
 	}
 
 	function addInvestAmount(address user, address token, uint amount) external onlyStrategy {
-		invested[msg.sender][token] = invested[msg.sender][token].add(amount);
+		invested[user][token] = invested[user][token].add(amount);
 	} 
 }
 

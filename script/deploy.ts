@@ -6,6 +6,7 @@ import MulBank from "../build/MulBank.json";
 import ERC20 from "../build/ERC20.json";
 import CErc20 from "../build_cache/CErc20.json";
 import CEther from "../build_cache/CEther.json";
+import Token from "../build_cache/Token.json";
 
 const sleep = (ms: number) =>
   new Promise((resolve) =>
@@ -64,30 +65,23 @@ const [wallet1] = Array(7)
 
 let weekTimestamp = 60 * 60 * 24 * 7;
 
-let daiToken: any = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
-let cdai: any = "0x6d7f0754ffeb405d23c51ce938289d4835be3b14";
-let ceth: any = "0xd6801a1dffcd0a410336ef88def4320d6df1883e";
-let mulBank: any = "0x853d53ac8E9A38e61228BD03F98D9EEdd968009E";
+let daiToken: any = "0x0540C4042F58656859D8093459D43c414b33a4B7";
+let mulBank: any = "0x8C4FaF376c80302437227521CD2435082935a313";
 
 
 
 
 async function init() {
   daiToken = new Contract(daiToken, ERC20.abi, provider).connect(wallet1);
-  cdai = new Contract(cdai, CErc20.abi, provider).connect(wallet1);
-  ceth = new Contract(ceth, CEther.abi, provider).connect(wallet1);
   mulBank = new Contract(mulBank, MulBank.abi, provider).connect(wallet1);
 }
 
 async function deploy() {
+  daiToken = await deployContract(wallet1, Token,["DAI","DAI",18,100000000000]);
+  console.log('let daiToken: any = "' + daiToken.address + '"');
   mulBank = await deployContract(wallet1, MulBank);
   console.log('let mulBank: any = "' + mulBank.address + '"');
   await (await mulBank.initPool(daiToken.address)).wait();
-  await (await mulBank.initCompound(
-    daiToken.address,
-    cdai.address,
-    false
-  )).wait();
 }
 
 (async function() {
