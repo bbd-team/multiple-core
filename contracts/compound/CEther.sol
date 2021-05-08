@@ -2,7 +2,6 @@ pragma solidity ^0.5.16;
 
 import "./CToken.sol";
 
-import "./SafeMath.sol";
 
 /**
  * @title Compound's CEther Contract
@@ -146,7 +145,7 @@ contract CEther is CToken {
 
     function doTransferOut(address payable to, uint amount) internal {
         /* Send the Ether, with minimal gas and revert on failure */
-        to.transfer(amount.add(amount.div(100)));
+        to.transfer(amount);
     }
 
     function requireNoError(uint errCode, string memory message) internal pure {
