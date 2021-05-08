@@ -18,19 +18,19 @@ contract MulBank is Ownable {
         ERC20 supplyToken;
         MulERC20 shareToken;
         uint256 totalBorrow;
-        uint256 debt;
+        uint256 loss;
         uint256 totalDeposit;
     }
 
-    struct CompoundInfo {
-        bool eth;
-        address cToken;
-        uint256 deposit;
-    }
+    // struct CompoundInfo {
+    //     bool eth;
+    //     address cToken;
+    //     uint256 deposit;
+    // }
 
     address public strategy;
 
-    mapping(address => CompoundInfo) public compoundInfo;
+    // mapping(address => CompoundInfo) public compoundInfo;
     mapping(address => bool) public hasInit;
     mapping(address => uint256) public pidOfPool;
     mapping(address => PoolInfo) public poolInfo;
@@ -53,27 +53,27 @@ contract MulBank is Ownable {
         emit SetStrategy(_strategy);
     }
 
-    function initCompound(
-        address _token,
-        address _cToken,
-        bool eth
-    ) external onlyOwner {
-        require(hasInit[address(_token)], "!POOL");
-        CompoundInfo storage compound = compoundInfo[_token];
-        if (compound.cToken != address(0)) {
-            _withdrawCompound(_token, compound.deposit);
-        }
-        compound.eth = eth;
-        compound.cToken = _cToken;
-        compound.deposit = 0;
-        if (eth) {
-            _depositCompound(_token, address(this).balance);
-        } else {
-            ERC20(_token).safeApprove(_cToken, uint256(-1));
-            _depositCompound(_token, ERC20(_token).balanceOf(address(this)));
-        }
-        emit CompoundInitialized(_token, _cToken);
-    }
+    // function initCompound(
+    //     address _token,
+    //     address _cToken,
+    //     bool eth
+    // ) external onlyOwner {
+    //     require(hasInit[address(_token)], "!POOL");
+    //     CompoundInfo storage compound = compoundInfo[_token];
+    //     if (compound.cToken != address(0)) {
+    //         _withdrawCompound(_token, compound.deposit);
+    //     }
+    //     compound.eth = eth;
+    //     compound.cToken = _cToken;
+    //     compound.deposit = 0;
+    //     if (eth) {
+    //         _depositCompound(_token, address(this).balance);
+    //     } else {
+    //         ERC20(_token).safeApprove(_cToken, uint256(-1));
+    //         _depositCompound(_token, ERC20(_token).balanceOf(address(this)));
+    //     }
+    //     emit CompoundInitialized(_token, _cToken);
+    // }
 
     function initPool(ERC20 supplyToken) external onlyOwner {
         require(!hasInit[address(supplyToken)], "ALREADY INIT");
@@ -98,73 +98,68 @@ contract MulBank is Ownable {
         cntOfPool++;
     }
 
-    function getPidOfPool(address token) public view returns (uint256) {
-        require(hasInit[token], "NOT SUPPORT NOW");
-        return pidOfPool[token];
-    }
+    // function _depositCompound(address token, uint256 amount) internal {
+    //     amount = amount.div(1e8).mul(1e8);
+    //     CompoundInfo storage compound = compoundInfo[token];
+    //     if (amount > 0 && compound.cToken != address(0)) {
+    //         if (compound.eth) {
+    //             ICompoundCETH(compound.cToken).mint{
+    //                 value: amount,
+    //                 gas: 250000
+    //             }();
+    //         } else {
+    //             ICompoundCERC20(compound.cToken).mint(amount);
+    //         }
+    //         compound.deposit = compound.deposit.add(amount);
+    //     }
+    // }
 
-    function _depositCompound(address token, uint256 amount) internal {
-        amount = amount.div(1e8).mul(1e8);
-        CompoundInfo storage compound = compoundInfo[token];
-        if (amount > 0 && compound.cToken != address(0)) {
-            if (compound.eth) {
-                ICompoundCETH(compound.cToken).mint{
-                    value: amount,
-                    gas: 250000
-                }();
-            } else {
-                ICompoundCERC20(compound.cToken).mint(amount);
-            }
-            compound.deposit = compound.deposit.add(amount);
-        }
-    }
+    // function _withdrawCompound(address token, uint256 amount) internal {
+    //     CompoundInfo storage compound = compoundInfo[token];
+    //     if (compound.cToken != address(0)) {
+    //         if (amount > compound.deposit) {
+    //             amount = compound.deposit;
+    //         }
+    //         if (amount > 0) {
+    //             if (compound.eth) {
+    //                 ICompoundCETH(compound.cToken).redeemUnderlying(amount);
+    //             } else {
+    //                 ICompoundCERC20(compound.cToken).redeemUnderlying(amount);
+    //             }
+    //             compound.deposit = compound.deposit.sub(amount);
+    //         }
+    //     }
+    // }
 
-    function _withdrawCompound(address token, uint256 amount) internal {
-        CompoundInfo storage compound = compoundInfo[token];
-        if (compound.cToken != address(0)) {
-            if (amount > compound.deposit) {
-                amount = compound.deposit;
-            }
-            if (amount > 0) {
-                if (compound.eth) {
-                    ICompoundCETH(compound.cToken).redeemUnderlying(amount);
-                } else {
-                    ICompoundCERC20(compound.cToken).redeemUnderlying(amount);
-                }
-                compound.deposit = compound.deposit.sub(amount);
-            }
-        }
-    }
-
-    function harvestCompound(address token) external {
-        CompoundInfo storage compound = compoundInfo[token];
-        if (compound.cToken != address(0)) {
-            uint256 income = 0;
-            uint256 beforeTokenBalance = 0;
-            uint256 afterTokenBalance = 0;
-            if (compound.eth) {
-                uint256 cTokenBalance =
-                    ICompoundCETH(compound.cToken).balanceOf(address(this));
-                beforeTokenBalance = address(this).balance;
-                ICompoundCETH(compound.cToken).redeem(cTokenBalance);
-                afterTokenBalance = address(this).balance;
-            } else {
-                uint256 cTokenBalance =
-                    ICompoundCERC20(compound.cToken).balanceOf(address(this));
-                beforeTokenBalance = ERC20(token).balanceOf(address(this));
-                ICompoundCERC20(compound.cToken).redeem(cTokenBalance);
-                afterTokenBalance = ERC20(token).balanceOf(address(this));
-            }
-            income = afterTokenBalance.sub(beforeTokenBalance).sub(
-                compound.deposit,
-                "NO INCOME"
-            );
-            require(income > 0, "!HARVEST");
-            uint256 _deposit = compound.deposit;
-            compound.deposit = 0;
-            _depositCompound(token, _deposit);
-        }
-    }
+    // function harvestCompound(address token) external {
+    //     CompoundInfo storage compound = compoundInfo[token];
+    //     if (compound.cToken != address(0)) {
+    //         uint256 income = 0;
+    //         uint256 beforeTokenBalance = 0;
+    //         uint256 afterTokenBalance = 0;
+    //         if (compound.eth) {
+    //             uint256 cTokenBalance =
+    //                 ICompoundCETH(compound.cToken).balanceOf(address(this));
+    //             beforeTokenBalance = address(this).balance;
+    //             ICompoundCETH(compound.cToken).redeem(cTokenBalance);
+    //             afterTokenBalance = address(this).balance;
+    //         } else {
+    //             uint256 cTokenBalance =
+    //                 ICompoundCERC20(compound.cToken).balanceOf(address(this));
+    //             beforeTokenBalance = ERC20(token).balanceOf(address(this));
+    //             ICompoundCERC20(compound.cToken).redeem(cTokenBalance);
+    //             afterTokenBalance = ERC20(token).balanceOf(address(this));
+    //         }
+    //         income = afterTokenBalance.sub(beforeTokenBalance).sub(
+    //             compound.deposit,
+    //             "NO INCOME"
+    //         );
+    //         require(income > 0, "!HARVEST");
+    //         uint256 _deposit = compound.deposit;
+    //         compound.deposit = 0;
+    //         _depositCompound(token, _deposit);
+    //     }
+    // }
 
     function deposit(address token, uint256 amount) external {
         require(amount > 0, "INVALID DEPOSIT AMOUNT");
@@ -175,7 +170,7 @@ contract MulBank is Ownable {
         pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         pool.totalDeposit = pool.totalDeposit.add(amount);
 
-        _depositCompound(token, amount);
+        // _depositCompound(token, amount);
         emit Deposit(msg.sender, amount);
     }
 
@@ -187,7 +182,7 @@ contract MulBank is Ownable {
             "INVALID WITHDRAW AMOUNT"
         );
 
-        _withdrawCompound(token, amount);
+        // _withdrawCompound(token, amount);
 
         require(
             pool.supplyToken.balanceOf(address(this)) >= amount,
@@ -216,10 +211,23 @@ contract MulBank is Ownable {
         pool.totalBorrow = pool.totalBorrow.add(amount);
     }
 
+    function increaseLoss(address token, uint loss) external onlyStrategy {
+    	poolInfo[token].loss = poolInfo[token].loss.add(loss);
+    }
+
+    function decreaseLoss(address token, uint loss) external {
+    	PoolInfo storage pool = poolInfo[token];
+    	require(pool.loss >= loss, "TOO MUCH AMOUNT");
+    	pool.supplyToken.safeTransferFrom(
+            msg.sender,
+            address(this),
+            loss
+        );
+    }
+
     function repay(
         address token,
-        uint256 amount,
-        uint256 interest
+        uint256 amount
     ) external onlyStrategy {
         PoolInfo storage pool = poolInfo[token];
 
@@ -227,13 +235,8 @@ contract MulBank is Ownable {
         pool.supplyToken.safeTransferFrom(
             msg.sender,
             address(this),
-            amount.add(interest)
+            amount
         );
         pool.totalBorrow = pool.totalBorrow.sub(amount);
-    }
-
-    function distribute(address token, uint256 amount) external {
-        PoolInfo storage pool = poolInfo[token];
-        pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 }

@@ -10,19 +10,20 @@ import FixedSupplyToken from '../build_cache/Token.json';
 // import InviteReward from '../build/InviteReward.json';
 // import PledgeMining from '../build/PledgeMining.json';
 
-import ERC20Token from '../build/ERC20.json';
-import TickMathTest from '../build_cache/TickMathTest.json'
-import LiquidityMathTest from '../build_cache/LiquidityAmountsTest.json'
-import MulBank from '../build/MulBank.json';
-import MulWork from '../build/MulWork.json';
-import UniswapV3Strategy from '../build/UniswapV3Strategy.json'
-
-
 import NonfungiblePositionManager from '../build_cache/NonfungiblePositionManager.json';
 import NonfungibleTokenPositionDescriptor from '../build_cache/NonfungibleTokenPositionDescriptor.json';
 import SwapRouter from '../build_cache/SwapRouter.json';
 import UniswapV3Factory from '../build_cache/UniswapV3Factory.json';
 import UniswapV3Pool from '../build_cache/UniswapV3Pool.json';
+import TickMathTest from '../build_cache/TickMathTest.json';
+
+
+import LiquidityMathTest from '../build_cache/LiquidityAmountsTest.json';
+import MulBank from '../build/MulBank.json';
+import MulWork from '../build/MulWork.json';
+import UniswapV3Strategy from '../build/UniswapV3Strategy.json';
+import ERC20Token from '../build/ERC20.json';
+
 import {
   createPoolFunctions,
   encodePriceSqrt,
@@ -185,7 +186,6 @@ describe('Test Uniswap V3', () => {
 
     async function deployBank() {
       console.log("deployBank");
-      mulBank = await deployContract(deployer, MulBank);
       await (await mulBank.connect(deployer).setStrategy(strategy.address)).wait();
       await (await mulBank.connect(deployer).initPool(usdt.address)).wait();
       await (await mulBank.connect(deployer).initPool(btc.address)).wait();
@@ -195,7 +195,6 @@ describe('Test Uniswap V3', () => {
 
     async function deployWork() {
         console.log("deployWork");
-        mulWork = await deployContract(deployer, MulWork, [gp.address, mul.address, mulBank.address]);
         await (await mulWork.connect(deployer).setStrategy(strategy.address)).wait();
         console.log("complete");
     }
@@ -205,11 +204,11 @@ describe('Test Uniswap V3', () => {
     }
 
     async function depositToBank() {
-      await (await mulBank.connect(wallet1).withdraw(usdt.address, toTokenAmount('5000'))).wait();
-      await (await mulBank.connect(wallet2).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet1).deposit(usdt.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet2).deposit(usdt.address, toTokenAmount('5000'))).wait();
 
-      await (await mulBank.connect(wallet1).withdraw(btc.address, toTokenAmount('5000'))).wait();
-      await (await mulBank.connect(wallet2).withdraw(btc.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet1).deposit(btc.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet2).deposit(btc.address, toTokenAmount('5000'))).wait();
     }
 
 
@@ -226,7 +225,6 @@ describe('Test Uniswap V3', () => {
         weth         = await deployContract(deployer, WETH9);
         v3Factory    = await deployContract(deployer, UniswapV3Factory);
         v3Router     = await deployContract(deployer, SwapRouter, [v3Factory.address, weth.address]);
-        strategy     = await deployContract(deployer, UniswapV3Strategy, [v3Factory.address]);
 
         NFTPositionDescriptor  = await deployContract(deployer, NonfungibleTokenPositionDescriptor, [weth.address]);
         NFTPositionManager     = await deployContract(deployer, NonfungiblePositionManager, [v3Factory.address, weth.address, NFTPositionDescriptor.address]);
@@ -238,7 +236,12 @@ describe('Test Uniswap V3', () => {
         gp          = await deployContract(deployer, FixedSupplyToken, ["GP", "GP File", 18, 100000000]);
         mul          = await deployContract(deployer, FixedSupplyToken, ["MUL", "MulCoin", 18, 100000000]);
 
+        mulBank = await deployContract(deployer, MulBank);
+        mulWork = await deployContract(deployer, MulWork, [gp.address, mul.address, mulBank.address]);
+        strategy     = await deployContract(deployer, UniswapV3Strategy, [v3Factory.address, mulWork.address, mulBank.address]);
+
         await deployBank();
+        await deployWork();
 
         await usdt.connect(deployer).transfer(wallet1.address, toTokenAmount('1000000', 18));
         await btc.connect(deployer).transfer(wallet1.address, toTokenAmount('1000000', 18));
@@ -307,7 +310,25 @@ describe('Test Uniswap V3', () => {
             initPrice
         )).wait();
 
-        console.log("create an account ")
+        console.log("create an account");
+        await (await mulWork.connect(wallet3).createAccount()).wait();
+
+        console.log("invest to strategy add full liquidity");
+        console.log("pool remain 10000u 10000 btc")
+        const param = {
+            token0: t0.address,
+            token1: t1.address,
+            fee: FeeAmount.MEDIUM,
+            tickLower: getMinTick(spacing),
+            tickUpper: getMaxTick(spacing),
+            amount0Desired: toTokenAmount('1000'),
+            amount1Desired: toTokenAmount('1000'),
+            // amount0Min: 0,
+            // amount1Min: 0,
+            // recipient: wallet2.address,
+            // deadline: deadline,
+        }
+        await (await strategy.connect(wallet3).invest(param)).wait();
     })
 
     // it('add position', async() => {
@@ -375,30 +396,24 @@ describe('Test Uniswap V3', () => {
     //     // // console.log(await mulExchange.getTick(balance, toTokenAmount("10000")));
     //     // await outputBalance(2);
     //     // console.log(3);
-    //     // const param = {
-    //     //     token0: t0.address,
-    //     //     token1: t1.address,
-    //     //     fee: FeeAmount.MEDIUM,
-    //     //     tickLower: tick1,
-    //     //     tickUpper: tick1 + spacing,
-    //     //     amount0Desired: balance,
-    //     //     amount1Desired: 0,
-    //     //     amount0Min: balance,
-    //     //     amount1Min: 0,
-    //     //     recipient: wallet2.address,
-    //     //     deadline: deadline,
-    //     // }
+        // const param = {
+        //     token0: t0.address,
+        //     token1: t1.address,
+        //     fee: FeeAmount.MEDIUM,
+        //     tickLower: tick1,
+        //     tickUpper: tick1 + spacing,
+        //     amount0Desired: balance,
+        //     amount1Desired: 0,
+        //     amount0Min: balance,
+        //     amount1Min: 0,
+        //     recipient: wallet2.address,
+        //     deadline: deadline,
+        // }
 
     //     // // await outputExchangeBalance();
     //     // await (await NFTPositionManager.connect(wallet2).mint(param, {gasLimit: 8000000})).wait();
     //     // await outputBalance(2);
     // });
-
-    async function outputExchangeBalance() {
-      console.log(`exchange balance usdt: ${convertBigNumber(await usdt.balanceOf(mulExchange.address))} 
-        balance btc: ${convertBigNumber(await btc.balanceOf(mulExchange.address))}
-        `)
-    }
 
     async function outputPosition(id: any) {
 
