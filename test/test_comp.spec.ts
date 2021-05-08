@@ -11,6 +11,7 @@ import CEther from "../build_cache/CEther.json";
 import CErc20Delegator from "../build_cache/CErc20Delegator.json";
 import CErc20Delegate from "../build_cache/CErc20Delegate.json";
 import Token from "../build_cache/Token.json";
+import MulBank from "../build/MulBank.json";
 
 use(solidity);
 
@@ -55,6 +56,7 @@ describe("Test Comp", () => {
   let cErc20: Contract;
   let cErc20Delegator: Contract;
   let daiToken: Contract;
+  let mulBank: Contract;
 
   let MAXIMUM_U256 =
     "115792089237316195423570985008687907853269984665640564039457584007913129639935";
@@ -87,6 +89,7 @@ describe("Test Comp", () => {
       "8",
       wallet1.address,
     ]);
+    mulBank = await deployContract(wallet1, MulBank, []);
 
     await comptroller._supportMarket(cEther.address);
     cErc20 = await deployContract(wallet1, CErc20Delegate);
@@ -109,21 +112,30 @@ describe("Test Comp", () => {
       .connect(wallet1)
       .approve(cErc20Delegator.address, MAXIMUM_U256);
 
-    await daiToken.mint(
-      wallet2.address,
-      ethers.utils.parseEther("100000000")
-    );
-  
+    await daiToken.mint(wallet2.address, ethers.utils.parseEther("100000000"));
 
     await daiToken
-    .connect(wallet2)
-    .approve(cErc20Delegator.address, MAXIMUM_U256);
-    await cErc20Delegator.connect(wallet2).mint(ethers.utils.parseEther("100000000"));
+      .connect(wallet2)
+      .approve(cErc20Delegator.address, MAXIMUM_U256);
+    await cErc20Delegator
+      .connect(wallet2)
+      .mint(ethers.utils.parseEther("100000000"));
 
     await wallet2.sendTransaction({
       to: cEther.address,
       value: ethers.utils.parseEther("100"),
     });
+
+    await mulBank.initPool(daiToken.address);
+
+    await mulBank.initCompound(
+      daiToken.address,
+      cErc20Delegator.address,
+      false
+    );
+    await daiToken
+    .connect(wallet1)
+    .approve(mulBank.address, MAXIMUM_U256);
   });
 
   it("eth", async () => {
@@ -168,7 +180,9 @@ describe("Test Comp", () => {
     console.log(
       "DAI Before",
       ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
-      ethers.utils.formatEther(await daiToken.balanceOf(cErc20Delegator.address)),
+      ethers.utils.formatEther(
+        await daiToken.balanceOf(cErc20Delegator.address)
+      ),
       ethers.utils.formatEther(await daiToken.balanceOf(cErc20.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
     );
@@ -189,6 +203,26 @@ describe("Test Comp", () => {
       "DAI After",
       ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
+    );
+
+    await mulBank.deposit(daiToken.address, ethers.utils.parseEther("1.0"));
+
+    console.log(
+      ethers.utils.formatEther(await daiToken.balanceOf(mulBank.address)),
+      (await cErc20Delegator.balanceOf(mulBank.address)).toString(),
+    );
+
+    await mulBank.harvestCompound(daiToken.address);
+    console.log(
+      ethers.utils.formatEther(await daiToken.balanceOf(mulBank.address)),
+      (await cErc20Delegator.balanceOf(mulBank.address)).toString(),
+    );
+
+
+    await mulBank.withdraw(daiToken.address, ethers.utils.parseEther("1.0"));
+    console.log(
+      ethers.utils.formatEther(await daiToken.balanceOf(mulBank.address)),
+      (await cErc20Delegator.balanceOf(mulBank.address)).toString(),
     );
   });
 });

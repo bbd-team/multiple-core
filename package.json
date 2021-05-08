@@ -34,7 +34,7 @@
     "lint": "yarn prettier ./test/*.ts --check",
     "precompile": "yarn clean",
     "clean": "rimraf ./build/",
-    "compile2": "waffle .waffle.json && waffle .waffle-uni.json && waffle .waffle-compound.json",
+    "compile2": "rimraf ./build_cache/ && waffle .waffle.json && waffle .waffle-uni.json && waffle .waffle-compound.json",
     "compile": "waffle .waffle.json",
     "pretest": "yarn compile",
     "test": "mocha --timeout 600000",

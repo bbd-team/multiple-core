@@ -190,7 +190,7 @@ contract CErc20 is CToken, CErc20Interface {
      */
     function doTransferOut(address payable to, uint amount) internal {
         EIP20NonStandardInterface token = EIP20NonStandardInterface(underlying);
-        token.transfer(to, amount.add(amount.div(100)));
+        token.transfer(to, amount);
 
         bool success;
         assembly {
