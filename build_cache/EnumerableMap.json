@@ -1,0 +1,16 @@
+{
+  "abi": [],
+  "evm": {
+    "bytecode": {
+      "object": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220750234ac7f6def46f82088498f6243207b5f3425398714fb21dbdf9f036fd4a864736f6c63430007060033",
+      "sourceMap": "764:8963:18:-:0;;;;;;;;;;;;;;;;;;;;;;;;;"
+    },
+    "deployedBytecode": {
+      "object": "73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220750234ac7f6def46f82088498f6243207b5f3425398714fb21dbdf9f036fd4a864736f6c63430007060033",
+      "sourceMap": "764:8963:18:-:0;;;;;;;;"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.7.6+commit.7338295f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"Library for managing an enumerable variant of Solidity's https://solidity.readthedocs.io/en/latest/types.html#mapping-types[`mapping`] type. Maps have the following properties: - Entries are added, removed, and checked for existence in constant time (O(1)). - Entries are enumerated in O(n). No guarantees are made on the ordering. ``` contract Example {     // Add the library methods     using EnumerableMap for EnumerableMap.UintToAddressMap;     // Declare a set state variable     EnumerableMap.UintToAddressMap private myMap; } ``` As of v3.0.0, only maps of type `uint256 -> address` (`UintToAddressMap`) are supported.\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"@openzeppelin/contracts/utils/EnumerableMap.sol\":\"EnumerableMap\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/utils/EnumerableMap.sol\":{\"keccak256\":\"0x2114555153edb5f273008b3d34205f511db9af06b88f752e4c280dd612c4c549\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8779df50f4f716c6adaa5f61880c572abb2b37197d690d6aad32e52a32d5f382\",\"dweb:/ipfs/QmVuZMGNFEo4gm1QB55gnCwCTc7XC5npkmgdfeJUgHbMiL\"]}},\"version\":1}",
+  "bytecode": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220750234ac7f6def46f82088498f6243207b5f3425398714fb21dbdf9f036fd4a864736f6c63430007060033",
+  "humanReadableAbi": []
+}

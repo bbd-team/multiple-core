@@ -4,13 +4,13 @@ import { deployContract, MockProvider, solidity } from "ethereum-waffle";
 
 import { BigNumber as BN } from "bignumber.js";
 
-import Unitroller from "../build/Unitroller.json";
-import Comptroller from "../build/Comptroller.json";
-import WhitePaperInterestRateModel from "../build/WhitePaperInterestRateModel.json";
-import CEther from "../build/CEther.json";
-import CErc20Delegator from "../build/CErc20Delegator.json";
-import CErc20Delegate from "../build/CErc20Delegate.json";
-import Token from "../build/Token.json";
+import Unitroller from "../build_cache/Unitroller.json";
+import Comptroller from "../build_cache/Comptroller.json";
+import WhitePaperInterestRateModel from "../build_cache/WhitePaperInterestRateModel.json";
+import CEther from "../build_cache/CEther.json";
+import CErc20Delegator from "../build_cache/CErc20Delegator.json";
+import CErc20Delegate from "../build_cache/CErc20Delegate.json";
+import Token from "../build_cache/Token.json";
 
 use(solidity);
 
@@ -110,9 +110,15 @@ describe("Test Comp", () => {
       .approve(cErc20Delegator.address, MAXIMUM_U256);
 
     await daiToken.mint(
-      cErc20Delegator.address,
+      wallet2.address,
       ethers.utils.parseEther("100000000")
     );
+  
+
+    await daiToken
+    .connect(wallet2)
+    .approve(cErc20Delegator.address, MAXIMUM_U256);
+    await cErc20Delegator.connect(wallet2).mint(ethers.utils.parseEther("100000000"));
 
     await wallet2.sendTransaction({
       to: cEther.address,
@@ -161,25 +167,27 @@ describe("Test Comp", () => {
     console.log(cToken);
     console.log(
       "DAI Before",
-      ethers.utils.formatEther(await provider.getBalance(wallet1.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(cErc20Delegator.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(cErc20.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
     );
     await cErc20Delegator.redeem(cToken);
     console.log(
       "DAI After",
-      ethers.utils.formatEther(await provider.getBalance(wallet1.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
     );
     await cErc20Delegator.mint(ethers.utils.parseEther("1.0"));
     console.log(
       "DAI Before",
-      ethers.utils.formatEther(await provider.getBalance(wallet1.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
     );
     await cErc20Delegator.redeemUnderlying(ethers.utils.parseEther("1.0"));
     console.log(
       "DAI After",
-      ethers.utils.formatEther(await provider.getBalance(wallet1.address)),
+      ethers.utils.formatEther(await daiToken.balanceOf(wallet1.address)),
       (await cErc20Delegator.balanceOf(wallet1.address)).toString()
     );
   });

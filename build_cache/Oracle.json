@@ -1,0 +1,16 @@
+{
+  "abi": [],
+  "evm": {
+    "bytecode": {
+      "object": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212206b4b4aded08d1b65aba996ff84ca446a6101ff1f30ad9d5dfeb986b6866955c764736f6c63430007060033",
+      "sourceMap": "676:15148:54:-:0;;;;;;;;;;;;;;;;;;;;;;;;;"
+    },
+    "deployedBytecode": {
+      "object": "73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212206b4b4aded08d1b65aba996ff84ca446a6101ff1f30ad9d5dfeb986b6866955c764736f6c63430007060033",
+      "sourceMap": "676:15148:54:-:0;;;;;;;;"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.7.6+commit.7338295f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"Instances of stored oracle data, \\\"observations\\\", are collected in the oracle array Every pool is initialized with an oracle array length of 1. Anyone can pay the SSTOREs to increase the maximum length of the oracle array. New slots will be added when the array is fully populated. Observations are overwritten when the full length of the oracle array is populated. The most recent observation is available, independent of the length of the oracle array, by passing 0 to observe()\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Oracle\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Provides price and liquidity data useful for a wide variety of system designs\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/external/uniswap-v3-core/libraries/Oracle.sol\":\"Oracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/external/uniswap-v3-core/libraries/Oracle.sol\":{\"keccak256\":\"0x53393f5378c2ebede1f06de5a67d515460496d3109475fb2294e6d1ed8a54984\",\"license\":\"BUSL-1.1\",\"urls\":[\"bzz-raw://e262c642a6cfd4ea65eaaee6c1286b9987dc5f5dd031f074726a57236390015b\",\"dweb:/ipfs/QmcGNpZYYFvwDfCVJaaij2QiAy61Wm4FNFzo68JgKhDpeX\"]}},\"version\":1}",
+  "bytecode": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212206b4b4aded08d1b65aba996ff84ca446a6101ff1f30ad9d5dfeb986b6866955c764736f6c63430007060033",
+  "humanReadableAbi": []
+}

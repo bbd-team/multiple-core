@@ -1,0 +1,82 @@
+{
+  "abi": [
+    {
+      "inputs": [],
+      "name": "callsIntoNoDelegateCallFunction",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "canBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cannotBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasCostOfCanBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasCostOfCannotBeDelegateCalled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "object": "60a060405234801561001057600080fd5b5030606081901b6080526101546100306000398060ec52506101546000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633045a6e01461005c5780633c7c8dd014610076578063423ecb051461007e5780636427016414610086578063f45f416e14610090575b600080fd5b610064610098565b60408051918252519081900360200190f35b6100646100af565b6100646100b9565b61008e6100cd565b005b6100646100d7565b6000805a90506100a66100d7565b505a9003905090565b6000805a90506100a65b60006100c36100e1565b6005425b04905090565b6100d5610116565b565b60006005426100c7565b306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146100d557600080fd5b6100d56100e156fea2646970667358221220c8e82ffbfd3bfee7e014d4b578d58a48d1481905f666c98899cfdb3d28c6380364736f6c63430007060033",
+      "sourceMap": "97:856:73:-:0;;;;;;;;;;;;-1:-1:-1;591:4:31;572:24;;;;;;97:856:73;;;;;;;"
+    },
+    "deployedBytecode": {
+      "object": "608060405234801561001057600080fd5b50600436106100575760003560e01c80633045a6e01461005c5780633c7c8dd014610076578063423ecb051461007e5780636427016414610086578063f45f416e14610090575b600080fd5b610064610098565b60408051918252519081900360200190f35b6100646100af565b6100646100b9565b61008e6100cd565b005b6100646100d7565b6000805a90506100a66100d7565b505a9003905090565b6000805a90506100a65b60006100c36100e1565b6005425b04905090565b6100d5610116565b565b60006005426100c7565b306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146100d557600080fd5b6100d56100e156fea2646970667358221220c8e82ffbfd3bfee7e014d4b578d58a48d1481905f666c98899cfdb3d28c6380364736f6c63430007060033",
+      "sourceMap": "97:856:73:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;387:190;;;:::i;:::-;;;;;;;;;;;;;;;;583:196;;;:::i;259:122::-;;;:::i;785:97::-;;;:::i;:::-;;149:104;;;:::i;387:190::-;453:7;472:17;492:9;472:29;;511:21;:19;:21::i;:::-;;561:9;549:21;;;-1:-1:-1;387:190:73;:::o;583:196::-;652:7;671:17;691:9;671:29;;710:24;259:122;329:7;1036:22:31;:20;:22::i;:::-;373:1:73::1;355:15;:19;;348:26;;259:122:::0;:::o;785:97::-;852:23;:21;:23::i;:::-;785:97::o;149:104::-;201:7;245:1;227:15;:19;;835:96:31;906:4;-1:-1:-1;;;;;915:8:31;898:25;;890:34;;;;;888:63:73;1036:22:31;:20;:22::i"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.7.6+commit.7338295f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"callsIntoNoDelegateCallFunction\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"canBeDelegateCalled\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cannotBeDelegateCalled\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGasCostOfCanBeDelegateCalled\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGasCostOfCannotBeDelegateCalled\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/external/uniswap-v3-core/test/NoDelegateCallTest.sol\":\"NoDelegateCallTest\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/external/uniswap-v3-core/NoDelegateCall.sol\":{\"keccak256\":\"0xc12ceb98dc803a7d745d7e7c53175b4c5b7781dd26e6f5d233deecd8b0d0d1dc\",\"license\":\"BUSL-1.1\",\"urls\":[\"bzz-raw://224378ae3c96adfb81f0c827e2a5a8b51e3bb51c6fc4a82e79f14720b42d719f\",\"dweb:/ipfs/QmapcnEvVdCoLqp4CUYmg8tuc6ui1u6fg8gt7YoCVvgZyC\"]},\"contracts/external/uniswap-v3-core/test/NoDelegateCallTest.sol\":{\"keccak256\":\"0xdd42b1cb36d44f17bb60d1d548c0d52f8ceaab3b81806507f34b53d13ee30333\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0e68f08c0eb20a8d527d6ff981dda5454651229fd7dc42aae3d94bbcfc4d74f3\",\"dweb:/ipfs/QmXcMqroiGh2Jpme6k8o1jAy9NmxQ2JV7PCSmyHCdHwSA7\"]}},\"version\":1}",
+  "bytecode": "60a060405234801561001057600080fd5b5030606081901b6080526101546100306000398060ec52506101546000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633045a6e01461005c5780633c7c8dd014610076578063423ecb051461007e5780636427016414610086578063f45f416e14610090575b600080fd5b610064610098565b60408051918252519081900360200190f35b6100646100af565b6100646100b9565b61008e6100cd565b005b6100646100d7565b6000805a90506100a66100d7565b505a9003905090565b6000805a90506100a65b60006100c36100e1565b6005425b04905090565b6100d5610116565b565b60006005426100c7565b306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146100d557600080fd5b6100d56100e156fea2646970667358221220c8e82ffbfd3bfee7e014d4b578d58a48d1481905f666c98899cfdb3d28c6380364736f6c63430007060033",
+  "humanReadableAbi": [
+    "function callsIntoNoDelegateCallFunction() view",
+    "function canBeDelegateCalled() view returns(uint256)",
+    "function cannotBeDelegateCalled() view returns(uint256)",
+    "function getGasCostOfCanBeDelegateCalled() view returns(uint256)",
+    "function getGasCostOfCannotBeDelegateCalled() view returns(uint256)"
+  ]
+}

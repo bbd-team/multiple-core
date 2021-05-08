@@ -3,7 +3,7 @@ import { Contract, ethers, BigNumber, constants } from 'ethers';
 import { deployContract, MockProvider, solidity } from 'ethereum-waffle';
 
 // import LPMining from '../build/LPMining.json';
-import FixedSupplyToken from '../build/Token.json';
+import FixedSupplyToken from '../build_cache/Token.json';
 // import ETToken from '../build/ETToken.json';
 // import WETH from '../build/WETH.json';
 // import Recommend from '../build/Recommend.json';
@@ -11,18 +11,18 @@ import FixedSupplyToken from '../build/Token.json';
 // import PledgeMining from '../build/PledgeMining.json';
 
 import ERC20Token from '../build/ERC20.json';
-import TickMathTest from '../build/TickMathTest.json'
-import LiquidityMathTest from '../build/LiquidityAmountsTest.json'
+import TickMathTest from '../build_cache/TickMathTest.json'
+import LiquidityMathTest from '../build_cache/LiquidityAmountsTest.json'
 import MulBank from '../build/MulBank.json';
 import MulWork from '../build/MulWork.json';
 import UniswapV3Strategy from '../build/UniswapV3Strategy.json'
 
 
-import NonfungiblePositionManager from '../build/NonfungiblePositionManager.json';
-import NonfungibleTokenPositionDescriptor from '../build/NonfungibleTokenPositionDescriptor.json';
-import SwapRouter from '../build/SwapRouter.json';
-import UniswapV3Factory from '../build/UniswapV3Factory.json';
-import UniswapV3Pool from '../build/UniswapV3Pool.json';
+import NonfungiblePositionManager from '../build_cache/NonfungiblePositionManager.json';
+import NonfungibleTokenPositionDescriptor from '../build_cache/NonfungibleTokenPositionDescriptor.json';
+import SwapRouter from '../build_cache/SwapRouter.json';
+import UniswapV3Factory from '../build_cache/UniswapV3Factory.json';
+import UniswapV3Pool from '../build_cache/UniswapV3Pool.json';
 import {
   createPoolFunctions,
   encodePriceSqrt,
@@ -40,7 +40,7 @@ import {
 const deadline = 1626298638;
 const spacing = TICK_SPACINGS[FeeAmount.MEDIUM];
 
-import WETH9 from '../build/WETH.json';
+import WETH9 from '../build_cache/WETH.json';
 
 
 import { BigNumber as BN } from 'bignumber.js'

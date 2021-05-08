@@ -3,6 +3,7 @@
   "compilerVersion": "v0.5.17+commit.d19bba13",
   "sourceDirectory": "./contracts/compound",
   "outputType": "all",
+  "outputDirectory": "./build_cache/",
   "outputHumanReadableAbi": true,
   "compilerOptions": {
     "outputSelection": {
