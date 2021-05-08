@@ -102,12 +102,14 @@ describe('Test Uniswap V3', () => {
     // let liquidityMath: Contract;
 
     let mulBank: Contract;
-    let mulExchange: Contract;
+    let mulWork: Contract;
 
     let weth: Contract;
     let usdt: Contract;
     let dai: Contract;
     let btc: Contract;
+    let gp: Contract;
+    let mul: Contract;
     
     let poolUSDT2BTC: Contract;
 
@@ -184,10 +186,18 @@ describe('Test Uniswap V3', () => {
     async function deployBank() {
       console.log("deployBank");
       mulBank = await deployContract(deployer, MulBank);
+      await (await mulBank.connect(deployer).setStrategy(strategy.address)).wait();
       await (await mulBank.connect(deployer).initPool(usdt.address)).wait();
       await (await mulBank.connect(deployer).initPool(btc.address)).wait();
       await (await mulBank.connect(deployer).initPool(dai.address)).wait();
       console.log("complete");
+    }
+
+    async function deployWork() {
+        console.log("deployWork");
+        mulWork = await deployContract(deployer, MulWork, [gp.address, mul.address, mulBank.address]);
+        await (await mulWork.connect(deployer).setStrategy(strategy.address)).wait();
+        console.log("complete");
     }
 
     function getLog(x: any, y: any) {
@@ -195,8 +205,14 @@ describe('Test Uniswap V3', () => {
     }
 
     async function depositToBank() {
-      await (await mulBank.connect(wallet1).deposit(0, toTokenAmount('10000'))).wait();
+      await (await mulBank.connect(wallet1).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet2).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+
+      await (await mulBank.connect(wallet1).withdraw(btc.address, toTokenAmount('5000'))).wait();
+      await (await mulBank.connect(wallet2).withdraw(btc.address, toTokenAmount('5000'))).wait();
     }
+
+
 
     before(async () => {
       // new bn(reserve1.toString())
@@ -218,6 +234,9 @@ describe('Test Uniswap V3', () => {
         usdt         = await deployContract(deployer, FixedSupplyToken, ["USDT", "Tether USD", 18, 100000000]);
         dai          = await deployContract(deployer, FixedSupplyToken, ["DAI", "DAI Stable Coin", 18, 100000000]);
         btc          = await deployContract(deployer, FixedSupplyToken, ["BTC", "Bitcoin", 18, 100000000]);
+
+        gp          = await deployContract(deployer, FixedSupplyToken, ["GP", "GP File", 18, 100000000]);
+        mul          = await deployContract(deployer, FixedSupplyToken, ["MUL", "MulCoin", 18, 100000000]);
 
         await deployBank();
 
@@ -258,23 +277,38 @@ describe('Test Uniswap V3', () => {
         await dai.connect(wallet2).approve(mulBank.address, constants.MaxUint256);
     });
 
-    it('deposit and withdraw', async() => {
-        await (await mulBank.connect(wallet1).deposit(usdt.address, toTokenAmount('10000'))).wait();
-        await (await mulBank.connect(wallet2).deposit(usdt.address, toTokenAmount('10000'))).wait();
+    // it('deposit and withdraw', async() => {
+    //     await (await mulBank.connect(wallet1).deposit(usdt.address, toTokenAmount('10000'))).wait();
+    //     await (await mulBank.connect(wallet2).deposit(usdt.address, toTokenAmount('10000'))).wait();
 
-        console.log("after deposit");
+    //     console.log("after deposit");
 
-        await outputBalance(1);
-        await outputBalance(2);
+    //     await outputBalance(1);
+    //     await outputBalance(2);
 
-        await (await mulBank.connect(wallet1).withdraw(usdt.address, toTokenAmount('5000'))).wait();
-        await (await mulBank.connect(wallet2).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+    //     await (await mulBank.connect(wallet1).withdraw(usdt.address, toTokenAmount('5000'))).wait();
+    //     await (await mulBank.connect(wallet2).withdraw(usdt.address, toTokenAmount('5000'))).wait();
 
-        console.log("after withdraw");
-        await outputBalance(1);
-        await outputBalance(2);
-    })  
+    //     console.log("after withdraw");
+    //     await outputBalance(1);
+    //     await outputBalance(2);
+    // })  
 
+    it('create account and invest', async() => {
+        await depositToBank();
+
+        console.log("create initial pool and price");
+        let initPrice = encodePriceSqrt(1, 1);
+        const [t0, t1] = sortedTokens(usdt, btc)
+        await (await NFTPositionManager.createAndInitializePoolIfNecessary(
+            t0.address,
+            t1.address,
+            FeeAmount.MEDIUM,
+            initPrice
+        )).wait();
+
+        console.log("create an account ")
+    })
 
     // it('add position', async() => {
     //     const [t0, t1] = sortedTokens(usdt, btc)
@@ -282,12 +316,12 @@ describe('Test Uniswap V3', () => {
 
     //     // create USDT-BTC medium fee pool
     //     console.log("初始价格usdt:btc 10000: 1");
-    //     await (await NFTPositionManager.createAndInitializePoolIfNecessary(
-    //         t0.address,
-    //         t1.address,
-    //         FeeAmount.MEDIUM,
-    //         initPrice
-    //     )).wait();
+        // await (await NFTPositionManager.createAndInitializePoolIfNecessary(
+        //     t0.address,
+        //     t1.address,
+        //     FeeAmount.MEDIUM,
+        //     initPrice
+        // )).wait();
 
     //     console.log("添加流动性 10000: 1");
     //     await addFullLiquidity();

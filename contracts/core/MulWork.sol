@@ -53,7 +53,7 @@ contract MulWork is Ownable {
 
 	function createAccount() external {
 		require(!workers[msg.sender].created, "ALREADY CREATED");
-		GPToken.safeTransferFrom(msg.sender, address(0), 1);
+		// GPToken.safeTransferFrom(msg.sender, address(this), 1);
 		cntOfWorker++;
 		workers[msg.sender] = Worker({
 			created: true,
