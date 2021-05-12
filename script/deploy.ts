@@ -83,11 +83,11 @@ async function deploy() {
   mulBank = await deployContract(wallet1, MulBank);
   console.log('let mulBank: any = "' + mulBank.address + '"');
   await (await mulBank.initPool(daiToken.address)).wait();
-  await (await mulBank.initCompound(
-    daiToken.address,
-    cdai.address,
-    false
-  )).wait();
+  // await (await mulBank.initCompound(
+  //   daiToken.address,
+  //   cdai.address,
+  //   false
+  // )).wait();
 }
 
 (async function() {

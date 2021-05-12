@@ -9,8 +9,10 @@ interface IMulBank {
 	function getPidOfPool(address token) external returns(uint);
 
 	// repay to pool
-    function repay(address token, uint amount, uint debt) external;
+    function repay(address token, uint amount) external;
     
     // borrow from bank
 	function borrow(address token, uint256 amount, address to) external;
+
+	function increaseLoss(address token, uint loss) external;
 }

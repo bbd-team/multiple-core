@@ -91,7 +91,7 @@ let address0 = "0x0000000000000000000000000000000000000000";
 
 describe('Test Uniswap V3', () => {
     let provider = new MockProvider({ ganacheOptions: { gasLimit: 8000000 } });
-    const [deployer, wallet1, wallet2, wallet3, wallet4] = provider.getWallets();
+    const [deployer, wallet1, wallet2, wallet3, wallet4, reward] = provider.getWallets();
 
     let NFTPositionManager: Contract;
     let NFTPositionDescriptor: Contract;
@@ -157,30 +157,30 @@ describe('Test Uniswap V3', () => {
         }
     }
 
-    // async function addFullLiquidity() {
-    //   const [t0, t1] = sortedTokens(usdt, btc)
-    //   const param = {
-    //         token0: t0.address,
-    //         token1: t1.address,
-    //         fee: FeeAmount.MEDIUM,
-    //         tickLower: getMinTick(spacing),
-    //         tickUpper: getMaxTick(spacing),
-    //         amount0Desired: toTokenAmount('1000000'),
-    //         amount1Desired: toTokenAmount('1000000'),
-    //         amount0Min: 0,
-    //         amount1Min: 0,
-    //         recipient: deployer.address,
-    //         deadline: deadline,
-    //     }
+    async function addFullLiquidity() {
+      const [t0, t1] = sortedTokens(usdt, btc)
+      const param = {
+            token0: t0.address,
+            token1: t1.address,
+            fee: FeeAmount.MEDIUM,
+            tickLower: getMinTick(spacing),
+            tickUpper: getMaxTick(spacing),
+            amount0Desired: toTokenAmount('10000'),
+            amount1Desired: toTokenAmount('10000'),
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: deployer.address,
+            deadline: deadline,
+        }
 
-    //     console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
-    //     balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
-    //     `)
-    //     await (await NFTPositionManager.connect(deployer).mint(param, {gasLimit: 8000000})).wait();
-    //     console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
-    //     balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
-    //     `)
-    // }
+        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
+        balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
+        `)
+        await (await NFTPositionManager.connect(deployer).mint(param, {gasLimit: 8000000})).wait();
+        console.log(`developer balance usdt: ${convertBigNumber(await usdt.balanceOf(deployer.address))} 
+        balance btc: ${convertBigNumber(await btc.balanceOf(deployer.address))}
+        `)
+    }
 
 
 
@@ -211,6 +211,45 @@ describe('Test Uniswap V3', () => {
       await (await mulBank.connect(wallet2).deposit(btc.address, toTokenAmount('5000'))).wait();
     }
 
+    async function swap(from: any, to: any, wallet:any, amount: any) {
+    //     struct ExactInputSingleParams {
+    //     address tokenIn;
+    //     address tokenOut;
+    //     uint24 fee;
+    //     address recipient;
+    //     uint256 deadline;
+    //     uint256 amountIn;
+    //     uint256 amountOutMinimum;
+    //     uint160 sqrtPriceLimitX96;
+    // }
+    // const [t0, t1] = sortedTokens(from, to)
+    let params = {
+              recipient: wallet.address,
+              deadline: deadline,
+              path: encodePath([from.address, to.address], [FeeAmount.MEDIUM]),
+              amountIn: amount,
+              amountOutMinimum: 0,
+        }
+
+        await (await v3Router.connect(wallet).exactInput(params, {gasLimit: 8000000})).wait();
+        console.log("swap complete");
+    }
+
+    async function printCurrentSlot(t0: any, t1: any) {
+        let pool = v3Factory.getPool(t0.address, t1.address, FeeAmount.MEDIUM);
+        let poolContract = new Contract(pool, UniswapV3Pool.abi, provider);
+        const {
+          sqrtPriceX96,
+          tick,
+          observationIndex,
+          observationCardinality,
+          observationCardinalityNext,
+          feeProtocol,
+          unlocked
+
+        } = await poolContract.slot0();
+        console.log("currentTick:", tick);
+    }
 
 
     before(async () => {
@@ -238,7 +277,7 @@ describe('Test Uniswap V3', () => {
 
         mulBank = await deployContract(deployer, MulBank);
         mulWork = await deployContract(deployer, MulWork, [gp.address, mul.address, mulBank.address]);
-        strategy     = await deployContract(deployer, UniswapV3Strategy, [v3Factory.address, mulWork.address, mulBank.address]);
+        strategy     = await deployContract(deployer, UniswapV3Strategy, [v3Factory.address, mulWork.address, mulBank.address, reward.address]);
 
         await deployBank();
         await deployWork();
@@ -255,13 +294,13 @@ describe('Test Uniswap V3', () => {
         await btc.connect(deployer).approve(NFTPositionManager.address, constants.MaxUint256);
         await dai.connect(deployer).approve(NFTPositionManager.address, constants.MaxUint256);
 
-        await usdt.connect(wallet1).approve(NFTPositionManager.address, constants.MaxUint256);
-        await btc.connect(wallet1).approve(NFTPositionManager.address, constants.MaxUint256);
-        await dai.connect(wallet1).approve(NFTPositionManager.address, constants.MaxUint256);
+        await usdt.connect(wallet1).approve(v3Router.address, constants.MaxUint256);
+        await btc.connect(wallet1).approve(v3Router.address, constants.MaxUint256);
+        await dai.connect(wallet1).approve(v3Router.address, constants.MaxUint256);
 
-        await usdt.connect(wallet2).approve(NFTPositionManager.address, constants.MaxUint256);
-        await btc.connect(wallet2).approve(NFTPositionManager.address, constants.MaxUint256);
-        await dai.connect(wallet2).approve(NFTPositionManager.address, constants.MaxUint256);
+        await usdt.connect(wallet2).approve(v3Router.address, constants.MaxUint256);
+        await btc.connect(wallet2).approve(v3Router.address, constants.MaxUint256);
+        await dai.connect(wallet2).approve(v3Router.address, constants.MaxUint256);
 
         await usdt.connect(wallet1).approve(mulBank.address, constants.MaxUint256);
         await btc.connect(wallet1).approve(mulBank.address, constants.MaxUint256);
@@ -298,6 +337,7 @@ describe('Test Uniswap V3', () => {
     // })  
 
     it('create account and invest', async() => {
+
         await depositToBank();
 
         console.log("create initial pool and price");
@@ -310,17 +350,21 @@ describe('Test Uniswap V3', () => {
             initPrice
         )).wait();
 
+        console.log("add full liquidity");
+        await addFullLiquidity();
+
         console.log("create an account");
         await (await mulWork.connect(wallet3).createAccount()).wait();
 
         console.log("invest to strategy add full liquidity");
+        await printCurrentSlot(btc, usdt);
         console.log("pool remain 10000u 10000 btc")
         const param = {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
-            tickLower: getMinTick(spacing),
-            tickUpper: getMaxTick(spacing),
+            tickLower: -600,
+            tickUpper: 600,
             amount0Desired: toTokenAmount('1000'),
             amount1Desired: toTokenAmount('1000'),
             // amount0Min: 0,
@@ -328,7 +372,18 @@ describe('Test Uniswap V3', () => {
             // recipient: wallet2.address,
             // deadline: deadline,
         }
-        await (await strategy.connect(wallet3).invest(param)).wait();
+        await (await strategy.connect(wallet3).invest(param, {gasLimit: 8000000})).wait();
+
+        console.log("simulate swap");
+        await swap(usdt, btc, wallet1, toTokenAmount("2000"));
+        await swap(btc, usdt, wallet1, toTokenAmount("1000"));
+
+        console.log("divest");
+
+        await (await strategy.connect(wallet3).takeProfit(1, {gasLimit: 8000000})).wait();
+        console.log(`strategy balance usdt: ${convertBigNumber(await usdt.balanceOf(strategy.address))} 
+        balance btc: ${convertBigNumber(await btc.balanceOf(strategy.address))}
+        `)
     })
 
     // it('add position', async() => {
@@ -353,16 +408,16 @@ describe('Test Uniswap V3', () => {
     //     let pool = v3Factory.getPool(t0.address, t1.address, FeeAmount.MEDIUM);
     //     let poolContract = new Contract(pool, UniswapV3Pool.abi, provider);
 
-    //     const {
-    //       sqrtPriceX96,
-    //       tick,
-    //       observationIndex,
-    //       observationCardinality,
-    //       observationCardinalityNext,
-    //       feeProtocol,
-    //       unlocked
+        // const {
+        //   sqrtPriceX96,
+        //   tick,
+        //   observationIndex,
+        //   observationCardinality,
+        //   observationCardinalityNext,
+        //   feeProtocol,
+        //   unlocked
 
-    //     } = await poolContract.slot0();
+        // } = await poolContract.slot0();
 
     //     console.log(sqrtPriceX96, tick, observationIndex, observationCardinality);
     //     await addLimitLiquidity();
