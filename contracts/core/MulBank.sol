@@ -9,8 +9,9 @@ import "./MulERC20.sol";
 import "./interfaces/ICompoundCERC20.sol";
 import "./interfaces/ICompoundCETH.sol";
 import "./MulERC20.sol";
+import "./base/Permission.sol";
 
-contract MulBank is Ownable {
+contract MulBank is Permission {
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
 
@@ -28,8 +29,6 @@ contract MulBank is Ownable {
     //     uint256 deposit;
     // }
 
-    address public strategy;
-
     // mapping(address => CompoundInfo) public compoundInfo;
     mapping(address => bool) public hasInit;
     mapping(address => uint256) public pidOfPool;
@@ -39,19 +38,10 @@ contract MulBank is Ownable {
 
     event PoolInitialized(address indexed supplyToken, address shareToken);
     event CompoundInitialized(address indexed token, address cToken);
-    event Deposit(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount);
-    event SetStrategy(address indexed strategy);
+    event Deposit(address indexed user, uint256 amount, uint256 share);
+    event Withdraw(address indexed user, uint256 amount, uint256 share);
 
-    modifier onlyStrategy() {
-        require(msg.sender == strategy, "FORBIDDEN");
-        _;
-    }
-
-    function setStrategy(address _strategy) external onlyOwner {
-        strategy = _strategy;
-        emit SetStrategy(_strategy);
-    }
+    // function set
 
     // function initCompound(
     //     address _token,
@@ -91,6 +81,7 @@ contract MulBank is Ownable {
             );
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, supplyToken));
         address shareToken = Create2.deploy(0, salt, bytecode);
+        MulERC20(shareToken).setDecimal(supplyToken.decimals());
         PoolInfo memory pool =
             PoolInfo(supplyToken, MulERC20(shareToken), 0, 0, 0);
         poolInfo[address(supplyToken)] = pool;
@@ -161,46 +152,49 @@ contract MulBank is Ownable {
     //     }
     // }
 
+    function getTotalShare(address token) public view returns(uint) {
+        PoolInfo memory pool = poolInfo[token];
+        return pool.totalBorrow.add(ERC20(pool.supplyToken).balanceOf(address(this)));
+    }
+
     function deposit(address token, uint256 amount) external {
+        require(hasInit[address(token)], "NOT SUPPORT NOW");
         require(amount > 0, "INVALID DEPOSIT AMOUNT");
 
         PoolInfo storage pool = poolInfo[token];
+        
+        uint totalShare = getTotalShare(address(pool.supplyToken));
+        uint share = totalShare == 0 ? amount: amount.mul(pool.supplyToken.totalSupply()).div(totalShare);
 
         pool.shareToken.mint(msg.sender, amount);
         pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         pool.totalDeposit = pool.totalDeposit.add(amount);
 
         // _depositCompound(token, amount);
-        emit Deposit(msg.sender, amount);
+        emit Deposit(msg.sender, amount, share);
     }
 
-    function withdraw(address token, uint256 amount) external {
+    function withdraw(address token, uint256 share) external {
         PoolInfo storage pool = poolInfo[token];
 
-        require(
-            pool.shareToken.balanceOf(msg.sender) >= amount,
-            "INVALID WITHDRAW AMOUNT"
-        );
+        require(pool.shareToken.balanceOf(msg.sender) >= share, "INVALID WITHDRAW SHARE");
+        uint totalShare = getTotalShare(address(pool.supplyToken));
 
-        // _withdrawCompound(token, amount);
-
-        require(
-            pool.supplyToken.balanceOf(address(this)) >= amount,
-            "NO ENOUGH AMOUNT"
-        );
+        uint amount = share.mul(totalShare).div(pool.supplyToken.totalSupply());
+        require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");
 
         pool.shareToken.burn(msg.sender, amount);
         pool.supplyToken.safeTransfer(msg.sender, amount);
         pool.totalDeposit = pool.totalDeposit.sub(amount);
 
-        emit Withdraw(msg.sender, amount);
+        emit Withdraw(msg.sender, amount, share);
     }
 
     function borrow(
         address token,
         uint256 amount,
         address to
-    ) external onlyStrategy {
+    ) external onlyPermission {
         PoolInfo storage pool = poolInfo[token];
 
         require(
@@ -211,32 +205,12 @@ contract MulBank is Ownable {
         pool.totalBorrow = pool.totalBorrow.add(amount);
     }
 
-    function increaseLoss(address token, uint loss) external onlyStrategy {
-    	poolInfo[token].loss = poolInfo[token].loss.add(loss);
-    }
-
-    function decreaseLoss(address token, uint loss) external {
-    	PoolInfo storage pool = poolInfo[token];
-    	require(pool.loss >= loss, "TOO MUCH AMOUNT");
-    	pool.supplyToken.safeTransferFrom(
-            msg.sender,
-            address(this),
-            loss
-        );
-    }
-
-    function repay(
+    function notifyRepay(
         address token,
         uint256 amount
-    ) external onlyStrategy {
+    ) external onlyPermission {
         PoolInfo storage pool = poolInfo[token];
-
         require(pool.totalBorrow >= amount, "INVALID REPAY AMOUNT");
-        pool.supplyToken.safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
         pool.totalBorrow = pool.totalBorrow.sub(amount);
     }
 }

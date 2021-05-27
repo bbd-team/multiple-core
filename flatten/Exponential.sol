@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/CarefulMath.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
   * @title Careful Math
@@ -90,8 +88,7 @@ contract CarefulMath {
 
 // Dependency file: contracts/compound/ExponentialNoError.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
  * @title Exponential module for storing fixed-precision decimals
@@ -290,8 +287,7 @@ contract ExponentialNoError {
 
 // Root file: contracts/compound/Exponential.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 // import "contracts/compound/CarefulMath.sol";
 // import "contracts/compound/ExponentialNoError.sol";

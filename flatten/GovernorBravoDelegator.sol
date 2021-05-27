@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/Governance/GovernorBravoInterfaces.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
 
@@ -187,8 +185,7 @@ interface GovernorAlpha {
 
 // Root file: contracts/compound/Governance/GovernorBravoDelegator.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
 // import "contracts/compound/Governance/GovernorBravoInterfaces.sol";

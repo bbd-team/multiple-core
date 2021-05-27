@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/ComptrollerInterface.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 contract ComptrollerInterface {
     /// @notice Indicator that this is a Comptroller contract (for inspection)
@@ -77,8 +75,7 @@ contract ComptrollerInterface {
 
 // Dependency file: contracts/compound/InterestRateModel.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
   * @title Compound's InterestRateModel Interface
@@ -112,8 +109,7 @@ contract InterestRateModel {
 
 // Dependency file: contracts/compound/EIP20NonStandardInterface.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
  * @title EIP20NonStandardInterface
@@ -187,8 +183,7 @@ interface EIP20NonStandardInterface {
 
 // Dependency file: contracts/compound/CTokenInterfaces.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 // import "contracts/compound/ComptrollerInterface.sol";
 // import "contracts/compound/InterestRateModel.sol";
@@ -496,8 +491,7 @@ contract CDelegateInterface is CDelegationStorage {
 
 // Root file: contracts/compound/CErc20Delegator.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 // import "contracts/compound/CTokenInterfaces.sol";
 

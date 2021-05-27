@@ -1,4 +1,4 @@
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/callback/IUniswapV3SwapCallback.sol
 
 // SPDX-License-Identifier: GPL-2.0-or-later
 // pragma solidity >=0.5.0;
@@ -28,7 +28,7 @@ interface IUniswapV3SwapCallback {
 pragma solidity >=0.7.5;
 pragma abicoder v2;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/callback/IUniswapV3SwapCallback.sol';
 
 /// @title Router token swapping functionality
 /// @notice Functions for swapping tokens via Uniswap V3

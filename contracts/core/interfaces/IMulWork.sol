@@ -6,4 +6,6 @@ interface IMulWork {
 	function getRemainQuota(address user, address token) external view returns(uint);
 
 	function addInvestAmount(address user, address token, uint amount) external;
+
+	function settle(address user, address token, uint amount, int128 profit) external; 
 }

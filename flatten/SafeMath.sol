@@ -1,8 +1,6 @@
 // Root file: contracts/compound/SafeMath.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 // From https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/Math.sol
 // Subject to the MIT license.

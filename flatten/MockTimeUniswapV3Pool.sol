@@ -3212,7 +3212,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     }
 }
 
-
 // Root file: contracts/external/uniswap-v3-core/test/MockTimeUniswapV3Pool.sol
 
 pragma solidity =0.7.6;

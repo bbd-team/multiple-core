@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/SafeMath.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 // From https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/Math.sol
 // Subject to the MIT license.
@@ -192,8 +190,7 @@ library SafeMath {
 
 // Dependency file: contracts/compound/BaseJumpRateModelV2.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 // import "contracts/compound/SafeMath.sol";
 
@@ -334,8 +331,7 @@ contract BaseJumpRateModelV2 {
 
 // Dependency file: contracts/compound/LegacyInterestRateModel.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
   * @title Compound's Legacy InterestRateModel Interface
@@ -369,8 +365,7 @@ contract LegacyInterestRateModel {
 
 // Root file: contracts/compound/LegacyJumpRateModelV2.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 // import "contracts/compound/BaseJumpRateModelV2.sol";
 // import "contracts/compound/LegacyInterestRateModel.sol";

@@ -937,6 +937,22 @@ library TickMath {
 }
 
 
+// Dependency file: @uniswap/v3-periphery/contracts/libraries/PositionKey.sol
+
+// pragma solidity >=0.5.0;
+
+library PositionKey {
+    /// @dev Returns the key of the position in the core library
+    function compute(
+        address owner,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(owner, tickLower, tickUpper));
+    }
+}
+
+
 // Dependency file: @uniswap/v3-core/contracts/libraries/FullMath.sol
 
 // pragma solidity >=0.4.0;
@@ -1790,6 +1806,8 @@ interface IMulWork {
 	function getRemainQuota(address user, address token) external view returns(uint);
 
 	function addInvestAmount(address user, address token, uint amount) external;
+
+	function settle(address user, address token, uint amount, int128 profit) external; 
 }
 
 // Dependency file: contracts/core/interfaces/IMulBank.sol
@@ -1797,14 +1815,14 @@ interface IMulWork {
 // pragma solidity ^0.7.0;
 
 interface IMulBank {
-	// get pool info by pid
-	function poolInfo(address token) view external returns (address, address, uint, uint, uint, uint);
-
-	// get pid of pool
-	function getPidOfPool(address token) external returns(uint);
+	// get TotalShare
+	function getTotalShare(address token) external view returns(uint);
 
 	// repay to pool
-    function repay(address token, uint amount, uint debt) external;
+    function notifyRepay(
+        address token,
+        uint256 amount
+    ) external;
     
     // borrow from bank
 	function borrow(address token, uint256 amount, address to) external;
@@ -1822,6 +1840,7 @@ pragma abicoder v2;
 // import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+// import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 // import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 // import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 // import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -1830,14 +1849,25 @@ pragma abicoder v2;
 // import "contracts/core/interfaces/IMulBank.sol";
 
 contract UniswapV3Strategy is Ownable {
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
+
 	struct Position {
+        bool    close;
 		address token0;
 		address token1;
-		uint    fee;
-		uint    liquidity;
+		uint24  fee;
+		uint128 liquidity;
 		uint    debt0;
 		uint    debt1;
+        int24   tickLower;
+        int24   tickUpper;
 		uint    createTime;
+        address operator;
+        uint exit0;
+        uint exit1;
+        uint256 feeGrowthInside0LastX128;
+        uint256 feeGrowthInside1LastX128;
 	}
 
 	IUniswapV3Factory public factory;
@@ -1845,11 +1875,25 @@ contract UniswapV3Strategy is Ownable {
 	IMulBank public bank;
 	IMulWork public work;
 	uint176 public _nextId = 0;
-	
-	mapping (uint => Position) positions;
+    address public rewardAddr;
 
-	constructor(IUniswapV3Factory _factory) {
+    /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
+    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
+    /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
+    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+	
+	Position[] public positions;
+
+    event Invest(address indexed user, uint positionId, address token0, address token1, uint invest0, uint invest1);
+    event Divest(address indexed user, uint positionId, uint amount0, uint amount1);
+
+	constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
 	    factory = _factory;
+        work = _work;
+        bank = _bank;
+        rewardAddr = _rewardAddr;
 	}
 
 	struct MintCallbackData {
@@ -1858,6 +1902,13 @@ contract UniswapV3Strategy is Ownable {
         uint24 fee;
         address payer;
     }
+
+    // struct SwapCallbackData {
+    //     address tokenIn;
+    //     address tokenOut;
+    //     uint24 fee;
+    //     uint positionId;
+    // }
     
     struct MintParams {
         address token0;
@@ -1874,30 +1925,53 @@ contract UniswapV3Strategy is Ownable {
         _;
       }
 
+    function toInt128(int256 y) internal pure returns (int128 z) {
+        require((z = int128(y)) == y);
+    }
+
     function uniswapV3MintCallback(
         uint256 amount0Owed,
         uint256 amount1Owed,
         bytes calldata data
     ) external {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
-        // CallbackValidation.verifyCallback(factory, decoded.poolKey);
-        require(msg.sender == IUniswapV3Factory(factory).getPool(decoded.token0, decoded.token1, decoded.fee), "INVALID CALLBACK");
+        require(msg.sender == factory.getPool(decoded.token0, decoded.token1, decoded.fee), "INVALID CALLBACK");
 
-        if (amount0Owed > 0) pay(decoded.token0, decoded.payer, amount0Owed, msg.sender);
-        if (amount1Owed > 0) pay(decoded.token1, decoded.payer, amount1Owed, msg.sender);
+        if (amount0Owed > 0) borrow(decoded.token0, decoded.payer, amount0Owed, msg.sender);
+        if (amount1Owed > 0) borrow(decoded.token1, decoded.payer, amount1Owed, msg.sender);
     }
 
-    function pay(address token, address payer, uint amount, address to) internal {
-    	require(work.getRemainQuota(msg.sender, token) >= amount, "NO ENOUGH QUOTA");
+    function borrow(address token, address payer, uint amount, address to) internal {
+    	require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
     	bank.borrow(token, amount, to);
-    	work.addInvestAmount(token, payer, amount);
+    	work.addInvestAmount(payer, token, amount);
     } 
 
-	function invest(MintParams calldata params) onlyEOA external returns (uint amount0, uint amount1){
-		address pool = factory.getPool(params.token0, params.token1, params.fee);
+    function _close(uint positionId, uint amount0, uint amount1) internal {
+        Position storage pos = positions[positionId];
+        pos.liquidity = 0;
+        pos.exit0 = amount0;
+        pos.exit1 = amount1;
+        int128 profit0 = amount0 > pos.debt0 ? int128(amount0.sub(pos.debt0)): -int128(pos.debt0.sub(amount0));
+        int128 profit1 = amount1 > pos.debt1 ? int128(amount1.sub(pos.debt1)): -int128(pos.debt1.sub(amount1));
+        work.settle(pos.operator, pos.token0, pos.debt0, profit0);
+        work.settle(pos.operator, pos.token1, pos.debt1, profit1);
 
-		(uint160 sqrtPriceX96, int24 currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
-		require(params.tickLower < currentTick && currentTick < params.tickUpper, "INVALID TICK SELECT");
+        IERC20(pos.token0).transfer(address(bank), IERC20(pos.token0).balanceOf(address(this)));
+        IERC20(pos.token1).transfer(address(bank), IERC20(pos.token1).balanceOf(address(this)));
+        bank.notifyRepay(pos.token0, pos.debt0);
+        bank.notifyRepay(pos.token1, pos.debt1);
+    }
+    
+	function invest(MintParams calldata params) onlyEOA external returns (uint amount0, uint amount1){
+		IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
+        require(params.token0 == IUniswapV3Pool(pool).token0() && params.token1 == IUniswapV3Pool(pool).token1(), "ORDER");
+
+		(uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
+		// require(params.tickLower < currentTick && currentTick < params.tickUpper, "INVALID TICK SELECT");
+
+        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
+
 
 		uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
                 sqrtPriceX96,
@@ -1907,27 +1981,88 @@ contract UniswapV3Strategy is Ownable {
                 params.amount1Desired
             );
 
-		(amount0, amount1) = IUniswapV3Pool(pool).mint(
+        require(liquidity > 0, "INVALID LIQUIDITY");
+		(amount0, amount1) = pool.mint(
             address(this),
             params.tickLower,
             params.tickUpper,
             liquidity,
             abi.encode(MintCallbackData({token0: params.token0, token1: params.token1, fee: params.fee, payer: msg.sender}))
         );
+
+        bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
+        (, feeGrowthInside0LastX128, feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
         
-        uint positionId = ++_nextId;
-        positions[positionId] = Position({
+        positions.push(Position({
+            close:  false,
             token0: params.token0,
             token1: params.token1,
             fee:    params.fee,
             liquidity: liquidity,
             debt0: amount0,
             debt1: amount1,
-            createTime: block.number
-        });
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper,
+            createTime: block.number,
+            operator: msg.sender,
+            exit0: 0,
+            exit1: 0,
+            feeGrowthInside0LastX128: feeGrowthInside0LastX128,
+            feeGrowthInside1LastX128: feeGrowthInside1LastX128
+        }));
+
+        emit Invest(msg.sender, _nextId, params.token0, params.token1, amount0, amount1);
+        _nextId++;
 	}
 
-// 	function divest() {
+	function divest(uint positionId) external onlyEOA returns(uint amount0, uint amount1){
+        Position memory pos = positions[positionId];
+        require(msg.sender == pos.operator && !pos.close && pos.liquidity > 0, "FORBIDDEN");
 
-// 	}
+        collect(positionId);
+        address pool = factory.getPool(pos.token0, pos.token1, pos.fee);
+        (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, pos.liquidity);
+        
+         = IUniswapV3Pool(pool).collect(address(this), pos.tickLower, pos.tickUpper, uint128(-1), uint128(-1));
+        _close(positionId, amount0, amount1);
+
+        emit Divest(msg.sender, positionId, amount0, amount1);
+    }
+
+    function collect(uint positionId) public re{
+        Position storage pos = positions[positionId];
+        require(msg.sender == pos.operator && !pos.close && pos.liquidity > 0, "FORBIDDEN");
+
+        address pool = factory.getPool(pos.token0, pos.token1, pos.fee);
+        pool.burn(position.tickLower, position.tickUpper, 0);
+
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) =
+                pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
+        uint128 fee0 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside0LastX128 - pos.feeGrowthInside0LastX128,
+                    position.liquidity,
+                    Q128
+                )
+            );
+        uint128 fee1 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside1LastX128 - pos.feeGrowthInside1LastX128,
+                    position.liquidity,
+                    Q128
+                )
+            );
+
+        pool.collect(recipient, position.tickLower, position.tickUpper, fee0, fee1);
+
+        distributeFee(pos.token0, fee0);
+        distributeFee(pos.token0, fee1);
+
+        pos.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
+        pos.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+    }
+
+    function distributeFee(address token, uint fee) internal {
+
+    }
 }

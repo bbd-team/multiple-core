@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/EIP20Interface.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
  * @title ERC 20 Token Standard Interface
@@ -68,8 +66,7 @@ interface EIP20Interface {
 
 // Root file: contracts/compound/Reservoir.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 /**
  * @title Reservoir Contract

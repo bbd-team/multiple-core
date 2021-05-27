@@ -1,4 +1,4 @@
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol
 
 // SPDX-License-Identifier: GPL-2.0-or-later
 // pragma solidity >=0.5.0;
@@ -37,7 +37,7 @@ interface IUniswapV3PoolImmutables {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol
 
 // pragma solidity >=0.5.0;
 
@@ -153,7 +153,7 @@ interface IUniswapV3PoolState {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolDerivedState.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol
 
 // pragma solidity >=0.5.0;
 
@@ -188,7 +188,7 @@ interface IUniswapV3PoolDerivedState {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol
 
 // pragma solidity >=0.5.0;
 
@@ -294,7 +294,7 @@ interface IUniswapV3PoolActions {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol
 
 // pragma solidity >=0.5.0;
 
@@ -320,7 +320,7 @@ interface IUniswapV3PoolOwnerActions {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol
 
 // pragma solidity >=0.5.0;
 
@@ -442,16 +442,16 @@ interface IUniswapV3PoolEvents {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol
 
 // pragma solidity >=0.5.0;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolDerivedState.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolImmutables.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolState.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolDerivedState.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolActions.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolOwnerActions.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/pool/IUniswapV3PoolEvents.sol';
 
 /// @title The interface for a Uniswap V3 Pool
 /// @notice A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
@@ -469,7 +469,7 @@ interface IUniswapV3Pool is
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint128.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/FixedPoint128.sol
 
 // pragma solidity >=0.4.0;
 
@@ -480,7 +480,7 @@ library FixedPoint128 {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/FullMath.sol
 
 // pragma solidity >=0.4.0;
 
@@ -1235,7 +1235,7 @@ library PositionKey {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol
+// Dependency file: contracts/external/uniswap-v3-core/interfaces/callback/IUniswapV3MintCallback.sol
 
 // pragma solidity >=0.5.0;
 
@@ -1256,7 +1256,7 @@ interface IUniswapV3MintCallback {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/TickMath.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/TickMath.sol
 
 // pragma solidity >=0.5.0;
 
@@ -1319,7 +1319,8 @@ library TickMath {
     /// @return tick The greatest tick for which the ratio is less than or equal to the input ratio
     function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
         // second inequality must be < because the price can never reach the price at the max tick
-        require(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO, 'R');
+        require(sqrtPriceX96 >= MIN_SQRT_RATIO, 'R1');
+        require(sqrtPriceX96 < MAX_SQRT_RATIO, 'R2');
         uint256 ratio = uint256(sqrtPriceX96) << 32;
 
         uint256 r = ratio;
@@ -1468,7 +1469,7 @@ library TickMath {
 
 // pragma solidity =0.7.6;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
 // import 'contracts/external/uniswap-v3-periphery/libraries/PoolAddress.sol';
 
 /// @notice Provides validation for callbacks from Uniswap V3 Pools
@@ -1504,7 +1505,7 @@ library CallbackValidation {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint96.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/FixedPoint96.sol
 
 // pragma solidity >=0.4.0;
 
@@ -1521,8 +1522,8 @@ library FixedPoint96 {
 
 // pragma solidity >=0.5.0;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint96.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FullMath.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FixedPoint96.sol';
 
 /// @title Liquidity amount functions
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices
@@ -1935,8 +1936,8 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
 // pragma solidity =0.7.6;
 pragma abicoder v2;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/TickMath.sol';
+// import 'contracts/external/uniswap-v3-core/interfaces/callback/IUniswapV3MintCallback.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/TickMath.sol';
 
 // import 'contracts/external/uniswap-v3-periphery/libraries/PoolAddress.sol';
 // import 'contracts/external/uniswap-v3-periphery/libraries/CallbackValidation.sol';
@@ -4061,10 +4062,9 @@ abstract contract SelfPermit is ISelfPermit {
 // pragma solidity =0.7.6;
 pragma abicoder v2;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint128.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol';
-
+// import 'contracts/external/uniswap-v3-core/interfaces/IUniswapV3Pool.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FixedPoint128.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FullMath.sol';
 // import 'contracts/external/uniswap-v3-periphery/interfaces/INonfungiblePositionManager.sol';
 // import 'contracts/external/uniswap-v3-periphery/interfaces/INonfungibleTokenPositionDescriptor.sol';
 // import 'contracts/external/uniswap-v3-periphery/libraries/PositionKey.sol';

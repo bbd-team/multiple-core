@@ -1,4 +1,4 @@
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/FullMath.sol
 
 // SPDX-License-Identifier: MIT
 // pragma solidity >=0.4.0;
@@ -126,7 +126,7 @@ library FullMath {
 }
 
 
-// Dependency file: /Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint96.sol
+// Dependency file: contracts/external/uniswap-v3-core/libraries/FixedPoint96.sol
 
 // pragma solidity >=0.4.0;
 
@@ -143,8 +143,8 @@ library FixedPoint96 {
 
 pragma solidity >=0.5.0;
 
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FullMath.sol';
-// import '/Users/wujiajun/Documents/code/dex/uniswap-v3-core/contracts/libraries/FixedPoint96.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FullMath.sol';
+// import 'contracts/external/uniswap-v3-core/libraries/FixedPoint96.sol';
 
 /// @title Liquidity amount functions
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices

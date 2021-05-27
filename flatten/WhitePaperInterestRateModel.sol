@@ -1,8 +1,6 @@
 // Dependency file: contracts/compound/InterestRateModel.sol
 
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 /**
   * @title Compound's InterestRateModel Interface
@@ -36,8 +34,7 @@ contract InterestRateModel {
 
 // Dependency file: contracts/compound/SafeMath.sol
 
-
-// pragma solidity >=0.5.0;
+// pragma solidity ^0.5.16;
 
 // From https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/Math.sol
 // Subject to the MIT license.
@@ -227,8 +224,7 @@ library SafeMath {
 
 // Root file: contracts/compound/WhitePaperInterestRateModel.sol
 
-
-pragma solidity >=0.5.0;
+pragma solidity ^0.5.16;
 
 // import "contracts/compound/InterestRateModel.sol";
 // import "contracts/compound/SafeMath.sol";

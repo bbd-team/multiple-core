@@ -186,7 +186,7 @@ describe('Test Uniswap V3', () => {
 
     async function deployBank() {
       console.log("deployBank");
-      await (await mulBank.connect(deployer).setStrategy(strategy.address)).wait();
+      await (await mulBank.connect(deployer).addPermission(strategy.address)).wait();
       await (await mulBank.connect(deployer).initPool(usdt.address)).wait();
       await (await mulBank.connect(deployer).initPool(btc.address)).wait();
       await (await mulBank.connect(deployer).initPool(dai.address)).wait();
@@ -195,7 +195,7 @@ describe('Test Uniswap V3', () => {
 
     async function deployWork() {
         console.log("deployWork");
-        await (await mulWork.connect(deployer).setStrategy(strategy.address)).wait();
+        await (await mulWork.connect(deployer).addPermission(strategy.address)).wait();
         console.log("complete");
     }
 
@@ -378,12 +378,28 @@ describe('Test Uniswap V3', () => {
         await swap(usdt, btc, wallet1, toTokenAmount("2000"));
         await swap(btc, usdt, wallet1, toTokenAmount("1000"));
 
+        console.log("call static");
+        let result = await strategy.connect(wallet3).callStatic.collect(0, {gasLimit: 8000000}); 
+        console.log(`static result: ${convertBigNumber(result[0])} ${convertBigNumber(result[1])}`);
+
         console.log("divest");
 
-        await (await strategy.connect(wallet3).takeProfit(1, {gasLimit: 8000000})).wait();
+        await (await strategy.connect(wallet3).divest(0, {gasLimit: 8000000})).wait();
         console.log(`strategy balance usdt: ${convertBigNumber(await usdt.balanceOf(strategy.address))} 
         balance btc: ${convertBigNumber(await btc.balanceOf(strategy.address))}
         `)
+
+        let quota0 = await mulWork.getRemainQuota(wallet3.address, btc.address);
+        let quota1 = await mulWork.getRemainQuota(wallet3.address, usdt.address);
+        console.log(`quota0: ${convertBigNumber(quota0)} quota1: ${convertBigNumber(quota1)}`);
+
+        let profit0 = await mulWork.profits(wallet3.address, btc.address);
+        let profit1 = await mulWork.profits(wallet3.address, usdt.address);
+        console.log(`profit0: ${convertBigNumber(profit0)} profit1: ${convertBigNumber(profit1)}`);
+
+
+
+        await outputPoolBalance();
     })
 
     // it('add position', async() => {
@@ -470,8 +486,9 @@ describe('Test Uniswap V3', () => {
     //     // await outputBalance(2);
     // });
 
-    async function outputPosition(id: any) {
-
+    async function outputPoolBalance() {
+        console.log(`bank usdt: ${convertBigNumber(await usdt.balanceOf(mulBank.address))}
+        bank btc: ${convertBigNumber(await btc.balanceOf(mulBank.address))}`)
     }
 
     async function outputBalance(key: any) {
