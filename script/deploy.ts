@@ -72,8 +72,8 @@ let weekTimestamp = 60 * 60 * 24 * 7;
 let usdc: any = "0x751290426902f507a9c0c536994b0f3997855BA0";
 let eth: any = "0xcfFd1542b1Fa9902C6Ef2799394B4de482AaC33a";
 let mulBank: any = "0x1555a04b203Cd5C7678C509A9d2060A402287ade";
-let strategy: any = "0x574EC9338d242c44B05Ca3787A15Cca89069711f";
-let mulWork: any = "0x496854685Cd191f8725CbAe6baC99D8B9BfEeE80";
+let strategy: any = "0xAA084548c32f45a95C44e40cddD7335558f748B4";
+let mulWork: any = "0x615d7c6A00335688F35D40Bb27735B7B2DBfDa97";
 let sandbox: any = "0x82219B2B463502935Cf74C47B8844C1E0B0a0D6D";
 let uniFactory: any = "0x1f98431c8ad98523631ae4a59f267346ea31f984";
 let reward: any = "0x2D83750BDB3139eed1F76952dB472A512685E3e0";
@@ -110,11 +110,28 @@ async function deploy() {
   console.log("add quota")
   await (await mulWork.connect(wallet1).setBaseQuota([usdc, eth], [toTokenAmount('100000'), toTokenAmount('100')])).wait();
 
+  await deposit(mulBank.address);
+
   console.log('let USDC: any = "' + usdc + '"');
   console.log('let ETH: any = "' + eth + '"');
   console.log('let mulBank: any = "' + mulBank.address + '"');
   console.log('let mulWork: any = "' + mulWork.address + '"');
   console.log('let strategy: any = "' + strategy.address + '"');
+}
+
+
+async function deposit(mulBank: any) {
+  let bankContract = new Contract(mulBank, MulBank.abi, provider).connect(wallet1);
+  let usdcContract = new Contract(usdc, ERC20.abi, provider).connect(wallet1);
+  let ethContract = new Contract(eth, ERC20.abi, provider).connect(wallet1);
+
+  console.log('approve');
+  await (await usdcContract.connect(wallet1).approve(mulBank, toTokenAmount("10000000", 6))).wait();
+  await (await ethContract.connect(wallet1).approve(mulBank, toTokenAmount("10000000"))).wait();
+
+  console.log('deposit')
+  await (await bankContract.connect(wallet1).deposit(usdc, toTokenAmount("10000000", 6))).wait();
+  await (await bankContract.connect(wallet1).deposit(eth, toTokenAmount("10000000"))).wait();
 }
 
 async function deploySandbox() {
