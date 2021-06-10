@@ -196,6 +196,7 @@ describe('Test Uniswap V3', () => {
     async function deployWork() {
         console.log("deployWork");
         await (await mulWork.connect(deployer).addPermission(strategy.address)).wait();
+        await (await mulWork.connect(deployer).setBaseQuota([usdt.address, btc.address], [toTokenAmount('10000'), toTokenAmount('10000')])).wait();
         console.log("complete");
     }
 
@@ -290,6 +291,10 @@ describe('Test Uniswap V3', () => {
         await btc.connect(deployer).transfer(wallet2.address, toTokenAmount('1000000', 18));
         await dai.connect(deployer).transfer(wallet2.address, toTokenAmount('1000000', 18));
 
+        await usdt.connect(deployer).transfer(wallet3.address, toTokenAmount('1000000', 18));
+        await btc.connect(deployer).transfer(wallet3.address, toTokenAmount('1000000', 18));
+        await dai.connect(deployer).transfer(wallet3.address, toTokenAmount('1000000', 18));
+
         await usdt.connect(deployer).approve(NFTPositionManager.address, constants.MaxUint256);
         await btc.connect(deployer).approve(NFTPositionManager.address, constants.MaxUint256);
         await dai.connect(deployer).approve(NFTPositionManager.address, constants.MaxUint256);
@@ -313,6 +318,10 @@ describe('Test Uniswap V3', () => {
         await usdt.connect(wallet2).approve(strategy.address, constants.MaxUint256);
         await btc.connect(wallet2).approve(strategy.address, constants.MaxUint256);
         await dai.connect(wallet2).approve(strategy.address, constants.MaxUint256);
+
+        await usdt.connect(wallet3).approve(strategy.address, constants.MaxUint256);
+        await btc.connect(wallet3).approve(strategy.address, constants.MaxUint256);
+        await dai.connect(wallet3).approve(strategy.address, constants.MaxUint256);
 
         await usdt.connect(wallet2).approve(mulBank.address, constants.MaxUint256);
         await btc.connect(wallet2).approve(mulBank.address, constants.MaxUint256);
@@ -378,15 +387,25 @@ describe('Test Uniswap V3', () => {
         await swap(usdt, btc, wallet1, toTokenAmount("2000"));
         await swap(btc, usdt, wallet1, toTokenAmount("1000"));
 
-        console.log("call static");
-        let result = await strategy.connect(wallet3).callStatic.collect(0, {gasLimit: 8000000}); 
-        console.log(`static result: ${convertBigNumber(result[0])} ${convertBigNumber(result[1])}`);
+        console.log("add");
 
+        await (await strategy.connect(wallet3).add(0, toTokenAmount('1000'), toTokenAmount('1000'), {gasLimit: 8000000})).wait();
+        // console.log("call static");
+        // let result = await strategy.connect(wallet3).callStatic.collect(0, {gasLimit: 8000000}); 
+        // console.log(`static result: ${convertBigNumber(result[0])} ${convertBigNumber(result[1])}`);
+        console.log("swap");
+        await swap(btc, usdt, wallet1, toTokenAmount("1200"));
         console.log("divest");
 
-        await (await strategy.connect(wallet3).divest(0, {gasLimit: 8000000})).wait();
+        // await (await strategy.connect(wallet3).divest(0, true, {gasLimit: 8000000})).wait();
+
+        await (await strategy.connect(wallet3).divest(0, true, {gasLimit: 8000000})).wait();
         console.log(`strategy balance usdt: ${convertBigNumber(await usdt.balanceOf(strategy.address))} 
         balance btc: ${convertBigNumber(await btc.balanceOf(strategy.address))}
+        `)
+
+        console.log(`wallet balance usdt: ${convertBigNumber(await usdt.balanceOf(wallet3.address))} 
+        balance btc: ${convertBigNumber(await btc.balanceOf(wallet3.address))}
         `)
 
         let quota0 = await mulWork.getRemainQuota(wallet3.address, btc.address);
@@ -396,8 +415,6 @@ describe('Test Uniswap V3', () => {
         let profit0 = await mulWork.profits(wallet3.address, btc.address);
         let profit1 = await mulWork.profits(wallet3.address, usdt.address);
         console.log(`profit0: ${convertBigNumber(profit0)} profit1: ${convertBigNumber(profit1)}`);
-
-
 
         await outputPoolBalance();
     })

@@ -718,6 +718,10 @@ contract MulERC20 is ERC20, Ownable {
 	   _mint(_to, _amount);
 	}
 
+	function setDecimal(uint8 decimal) external onlyOwner {
+		_setupDecimals(decimal);
+	}
+
 	function burn(address _to, uint256 _amount) external onlyOwner {
 	    _burn(_to, _amount);
 	}

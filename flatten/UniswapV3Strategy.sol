@@ -1851,30 +1851,36 @@ pragma abicoder v2;
 contract UniswapV3Strategy is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-
-	struct Position {
-        bool    close;
-		address token0;
-		address token1;
-		uint24  fee;
-		uint128 liquidity;
-		uint    debt0;
-		uint    debt1;
+    
+    struct Tick {
         int24   tickLower;
         int24   tickUpper;
-		uint    createTime;
+        uint256 feeGrowthInside0LastX128;
+        uint256 feeGrowthInside1LastX128;
+        uint128 liquidity;
+        uint fee0;
+        uint fee1;
+    }
+
+    struct Position {
+        bool    close;
+        address token0;
+        address token1;
+        uint24  fee;
+        uint    debt0;
+        uint    debt1;
+        uint    createTime;
         address operator;
         uint exit0;
         uint exit1;
-        uint256 feeGrowthInside0LastX128;
-        uint256 feeGrowthInside1LastX128;
-	}
+        Tick tick;
+    }
 
-	IUniswapV3Factory public factory;
+    IUniswapV3Factory public factory;
 
-	IMulBank public bank;
-	IMulWork public work;
-	uint176 public _nextId = 0;
+    IMulBank public bank;
+    IMulWork public work;
+    uint176 public _nextId = 0;
     address public rewardAddr;
 
     /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
@@ -1883,20 +1889,21 @@ contract UniswapV3Strategy is Ownable {
     uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
-	
-	Position[] public positions;
+    
+    Position[] public positions;
 
     event Invest(address indexed user, uint positionId, address token0, address token1, uint invest0, uint invest1);
     event Divest(address indexed user, uint positionId, uint amount0, uint amount1);
+    event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
 
-	constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
-	    factory = _factory;
+    constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
+        factory = _factory;
         work = _work;
         bank = _bank;
         rewardAddr = _rewardAddr;
-	}
+    }
 
-	struct MintCallbackData {
+    struct MintCallbackData {
         address token0;
         address token1;
         uint24 fee;
@@ -1942,14 +1949,14 @@ contract UniswapV3Strategy is Ownable {
     }
 
     function borrow(address token, address payer, uint amount, address to) internal {
-    	require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
-    	bank.borrow(token, amount, to);
-    	work.addInvestAmount(payer, token, amount);
+        require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
+        bank.borrow(token, amount, to);
+        work.addInvestAmount(payer, token, amount);
     } 
 
     function _close(uint positionId, uint amount0, uint amount1) internal {
         Position storage pos = positions[positionId];
-        pos.liquidity = 0;
+        pos.tick.liquidity = 0;
         pos.exit0 = amount0;
         pos.exit1 = amount1;
         int128 profit0 = amount0 > pos.debt0 ? int128(amount0.sub(pos.debt0)): -int128(pos.debt0.sub(amount0));
@@ -1961,108 +1968,150 @@ contract UniswapV3Strategy is Ownable {
         IERC20(pos.token1).transfer(address(bank), IERC20(pos.token1).balanceOf(address(this)));
         bank.notifyRepay(pos.token0, pos.debt0);
         bank.notifyRepay(pos.token1, pos.debt1);
+
+        pos.close = true;
     }
-    
-	function invest(MintParams calldata params) onlyEOA external returns (uint amount0, uint amount1){
-		IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
-        require(params.token0 == IUniswapV3Pool(pool).token0() && params.token1 == IUniswapV3Pool(pool).token1(), "ORDER");
 
-		(uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
-		// require(params.tickLower < currentTick && currentTick < params.tickUpper, "INVALID TICK SELECT");
-
-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
-
-
-		uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+    function _mint(IUniswapV3Pool pool, int24 tickLower, int tickUpper, uint amount0Desired, uint amount1Desired) internal returns (uint amount0, uint amount1) {
+        (uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
                 sqrtPriceX96,
                 TickMath.getSqrtRatioAtTick(params.tickLower),
                 TickMath.getSqrtRatioAtTick(params.tickUpper),
                 params.amount0Desired,
                 params.amount1Desired
             );
-
         require(liquidity > 0, "INVALID LIQUIDITY");
-		(amount0, amount1) = pool.mint(
+        (amount0, amount1) = pool.mint(
             address(this),
             params.tickLower,
             params.tickUpper,
             liquidity,
             abi.encode(MintCallbackData({token0: params.token0, token1: params.token1, fee: params.fee, payer: msg.sender}))
         );
+    }
+    
+    function invest(MintParams calldata params) external returns (uint amount0, uint amount1){
+        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
+        require(params.token0 == IUniswapV3Pool(pool).token0() && params.token1 == IUniswapV3Pool(pool).token1(), "ORDER");
+
+        
+        
 
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
-        (, feeGrowthInside0LastX128, feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
+        (, uint feeGrowthInside0LastX128, uint feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
         
+        Tick memory tick = Tick({
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper,
+            liquidity: liquidity,
+            feeGrowthInside0LastX128: feeGrowthInside0LastX128,
+            feeGrowthInside1LastX128: feeGrowthInside1LastX128,
+            fee0: 0,
+            fee1: 0
+        });
         positions.push(Position({
             close:  false,
             token0: params.token0,
             token1: params.token1,
             fee:    params.fee,
-            liquidity: liquidity,
             debt0: amount0,
             debt1: amount1,
-            tickLower: params.tickLower,
-            tickUpper: params.tickUpper,
             createTime: block.number,
             operator: msg.sender,
             exit0: 0,
             exit1: 0,
-            feeGrowthInside0LastX128: feeGrowthInside0LastX128,
-            feeGrowthInside1LastX128: feeGrowthInside1LastX128
+            tick: tick
         }));
 
         emit Invest(msg.sender, _nextId, params.token0, params.token1, amount0, amount1);
         _nextId++;
-	}
+    }
 
-	function divest(uint positionId) external onlyEOA returns(uint amount0, uint amount1){
+    function divest(uint positionId) external returns(uint amount0, uint amount1){
         Position memory pos = positions[positionId];
-        require(msg.sender == pos.operator && !pos.close && pos.liquidity > 0, "FORBIDDEN");
+        require(msg.sender == pos.operator && !pos.close && pos.tick.liquidity > 0, "FORBIDDEN");
 
         collect(positionId);
-        address pool = factory.getPool(pos.token0, pos.token1, pos.fee);
-        (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, pos.liquidity);
+        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
+        (amount0, amount1) = pool.burn(pos.tick.tickLower, pos.tick.tickUpper, pos.tick.liquidity);
         
-         = IUniswapV3Pool(pool).collect(address(this), pos.tickLower, pos.tickUpper, uint128(-1), uint128(-1));
+        pool.collect(address(this), pos.tick.tickLower, pos.tick.tickUpper, uint128(amount0), uint128(amount1));
         _close(positionId, amount0, amount1);
 
         emit Divest(msg.sender, positionId, amount0, amount1);
     }
 
-    function collect(uint positionId) public re{
+    function add(uint positionId, uint amount0Desired, uint amount1Desired) external returns(uint amount0, uint amount1) {
         Position storage pos = positions[positionId];
-        require(msg.sender == pos.operator && !pos.close && pos.liquidity > 0, "FORBIDDEN");
+        require(msg.sender == pos.operator && !pos.close && pos.tick.liquidity > 0, "FORBIDDEN");
 
-        address pool = factory.getPool(pos.token0, pos.token1, pos.fee);
-        pool.burn(position.tickLower, position.tickUpper, 0);
+        collect(positionId);
 
-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) =
-                pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
-        uint128 fee0 = uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside0LastX128 - pos.feeGrowthInside0LastX128,
-                    position.liquidity,
-                    Q128
-                )
+        (uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+                sqrtPriceX96,
+                pos.tick.tickLower,
+                pos.tick.tickUpper,
+                amount0Desired,
+                amount1Desired
             );
-        uint128 fee1 = uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside1LastX128 - pos.feeGrowthInside1LastX128,
-                    position.liquidity,
-                    Q128
-                )
-            );
+        require(liquidity > 0, "INVALID LIQUIDITY");
+        (amount0, amount1) = pool.mint(
+            address(this),
+            pos.tick.tickLower,
+            pos.tick.tickUpper,
+            liquidity,
+            abi.encode(MintCallbackData({token0: pos.token0, token1: pos.token1, fee: pos.fee, payer: msg.sender}))
+        );
 
-        pool.collect(recipient, position.tickLower, position.tickUpper, fee0, fee1);
 
-        distributeFee(pos.token0, fee0);
-        distributeFee(pos.token0, fee1);
-
-        pos.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
-        pos.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
     }
 
-    function distributeFee(address token, uint fee) internal {
+    function collect(uint positionId) internal returns(uint128 fee0, uint128 fee1) {
+        Position storage pos = positions[positionId];
+        require(msg.sender == pos.operator && !pos.close && pos.tick.liquidity > 0, "FORBIDDEN");
+        
+        Tick storage tick = pos.tick;
+        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
+        pool.burn(tick.tickLower, tick.tickUpper, 0);
 
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) =
+                pool.positions(PositionKey.compute(address(this), tick.tickLower, tick.tickUpper));
+        fee0 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside0LastX128 - tick.feeGrowthInside0LastX128,
+                    tick.liquidity,
+                    Q128
+                )
+            );
+        fee1 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside1LastX128 - tick.feeGrowthInside1LastX128,
+                    tick.liquidity,
+                    Q128
+                )
+            );
+
+        pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
+        tick.fee0 = tick.fee0.add(fee0);
+        tick.fee1 = tick.fee1.add(fee1);
+
+        distributeFee(pos.token0);
+        distributeFee(pos.token1);
+
+        tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
+        tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+
+        emit Collect(pos.operator, positionId, fee0, fee1);
+    }
+
+    function distributeFee(address token) internal {
+        uint balance = IERC20(token).balanceOf(address(this));
+        if(balance > 0) {
+            uint toBank = balance.mul(9).div(10);
+            IERC20(token).transfer(address(bank), toBank);
+            IERC20(token).transfer(msg.sender, balance.sub(toBank));
+        }
     }
 }

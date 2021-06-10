@@ -36,7 +36,7 @@ async function deployContract(signer: any, contractJSON: any, args?: any[]) {
   );
   if (!args) args = [];
   let ins = await factory.deploy(...args, {
-    gasPrice: ethers.utils.parseUnits("10", "gwei"),
+    gasPrice: ethers.utils.parseUnits("100", "gwei"),
   });
   await waitForMint(ins.deployTransaction.hash);
   return ins;
@@ -60,17 +60,17 @@ export class FryerDetail {
 let address0 = "0x0000000000000000000000000000000000000000";
 
 let provider = new ethers.providers.JsonRpcProvider(
-  "https://rinkeby.infura.io/v3/81c2db57647c4412b8ffb98058b5708d" // TODO RPC URL
+  "http://120.92.137.203:9009/" // TODO RPC URL
 );
 
 const [wallet1] = Array(7)
-  .fill("66fea855f0d990b7c3b42bddf1ca0e35d4211c1f85724e309f94201e7ed38e99") // TODO PRIVATE kEY
+  .fill("46b9e861b63d3509c88b7817275a30d22d62c8cd8fa6486ddee35ef0d8e0495f") // TODO PRIVATE kEY
   .map((x: string) => new ethers.Wallet(x, provider));
 
 let weekTimestamp = 60 * 60 * 24 * 7;
 
-let usdc: any = "0xd5B61730D852780c0E0D2cb04cAdEF7498ab0fab";
-let eth: any = "0x794aa9dDEF81Fcb4AE1e5bd0eD3664D982C77183";
+let usdc: any = "0x751290426902f507a9c0c536994b0f3997855BA0";
+let eth: any = "0xcfFd1542b1Fa9902C6Ef2799394B4de482AaC33a";
 let mulBank: any = "0x1555a04b203Cd5C7678C509A9d2060A402287ade";
 let strategy: any = "0x574EC9338d242c44B05Ca3787A15Cca89069711f";
 let mulWork: any = "0x496854685Cd191f8725CbAe6baC99D8B9BfEeE80";
@@ -106,6 +106,9 @@ async function deploy() {
 
   await (await mulBank.addPermission(strategy.address)).wait();
   await (await mulWork.addPermission(strategy.address)).wait();
+
+  console.log("add quota")
+  await (await mulWork.connect(wallet1).setBaseQuota([usdc, eth], [toTokenAmount('100000'), toTokenAmount('100')])).wait();
 
   console.log('let USDC: any = "' + usdc + '"');
   console.log('let ETH: any = "' + eth + '"');
