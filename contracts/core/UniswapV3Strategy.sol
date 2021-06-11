@@ -51,11 +51,6 @@ contract UniswapV3Strategy is Ownable {
     uint176 public _nextId = 0;
     address public rewardAddr;
 
-    /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
-    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
-    /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
-
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
     Position[] public positions;
@@ -79,13 +74,6 @@ contract UniswapV3Strategy is Ownable {
         uint24 fee;
         address payer;
     }
-
-    // struct SwapCallbackData {
-    //     address tokenIn;
-    //     address tokenOut;
-    //     uint24 fee;
-    //     uint positionId;
-    // }
     
     struct MintParams {
         address token0;
@@ -237,8 +225,7 @@ contract UniswapV3Strategy is Ownable {
     }
 
     function add(uint positionId, uint amount0Desired, uint amount1Desired) external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
-        Position storage pos = positions[positionId];
-        
+        Position storage pos = positions[positionId]; 
         IUniswapV3Pool pool;
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
             token0: pos.token0,
@@ -249,11 +236,13 @@ contract UniswapV3Strategy is Ownable {
             tickLower: pos.tick.tickLower,
             tickUpper: pos.tick.tickUpper
         }));
-        
+
+        collect(positionId);
+
         pos.tick.liquidity = pos.tick.liquidity + liquidity;
         pos.debt0 = pos.debt0.add(amount0);
         pos.debt1 = pos.debt1.add(amount1);
-        collect(positionId);
+        
         
         emit Add(msg.sender, positionId, amount0, amount1, liquidity);
     }
@@ -313,12 +302,12 @@ contract UniswapV3Strategy is Ownable {
                 )
             );
 
-        pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
+        (fee0, fee1) = pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
         tick.fee0 = tick.fee0.add(fee0);
         tick.fee1 = tick.fee1.add(fee1);
 
-        distributeFee(pos.token0);
-        distributeFee(pos.token1);
+        distributeFee(pos.token0, fee0);
+        distributeFee(pos.token1, fee1);
 
         tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
@@ -326,13 +315,12 @@ contract UniswapV3Strategy is Ownable {
         emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
-    function distributeFee(address token) internal {
-        uint balance = IERC20(token).balanceOf(address(this));
-        if(balance > 0) {
-            uint toBank = balance.mul(9).div(10);
+    function distributeFee(address token, uint amount) internal {
+        if(amount > 0) {
+            uint toBank = amount.mul(9).div(10);
             IERC20(token).transfer(address(bank), toBank);
             work.settle(msg.sender, token, 0, int128(toBank));
-            IERC20(token).transfer(msg.sender, balance.sub(toBank));
+            IERC20(token).transfer(msg.sender, amount.sub(toBank));
         }
     }
 }
