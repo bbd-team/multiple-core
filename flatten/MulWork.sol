@@ -1048,8 +1048,6 @@ contract MulWork is Permission {
 	IERC20 public MulToken;
 	IMulBank public bank;
 
-	address public strategy;
-
 	struct Worker {
 		bool created;
 		uint totalProfit;
@@ -1062,13 +1060,15 @@ contract MulWork is Permission {
 	mapping (address => mapping(address => uint)) public invested;
 	mapping (address => mapping(address => int128)) public profits;
 
+	mapping (address => uint) public baseQuota;
+
 	mapping (address => uint) totalProfits;
 	uint public cntOfWorker;
 	uint public basePercent = MAG;
 
 	event AccountCreated(address indexed user);
+	event SetBaseQuota(address indexed token, uint amount);
 	event UpdateBasePercent(uint oldBasePercent, uint newBasePercent);
-	event SetStrategy(address indexed strategy);
 	event Invest(address indexed user, address token, uint amount);
 	event Settle(address indexed user, address token, uint amount, int128 profit);
 
@@ -1078,20 +1078,10 @@ contract MulWork is Permission {
 		bank = _bank;
 	}
 
-	modifier onlyStrategy() {
-        require(msg.sender == strategy, 'FORBIDDEN');
-        _;
-      } 
-
     function setBasePercent(uint _newBasePercent) onlyOwner external {
     	require(_newBasePercent >= 0 && _newBasePercent <= MAG, "INVALID BASE PERCENT");
     	emit UpdateBasePercent(basePercent, _newBasePercent);
     	basePercent = _newBasePercent;
-    }
-
-    function setStrategy(address _strategy) onlyOwner external {
-    	strategy = _strategy;
-		emit SetStrategy(strategy);
     }
 
 	function createAccount() external {
@@ -1108,21 +1098,33 @@ contract MulWork is Permission {
 		emit AccountCreated(msg.sender);
 	}
 
+	function setBaseQuota(address[] calldata tokens, uint[] memory amounts) external onlyOwner {
+		require(tokens.length == amounts.length, "NOT MATCH");
+		uint cnt = tokens.length;
+		for(uint i = 0;i < cnt;i++) {
+			baseQuota[tokens[i]] = amounts[i];
+			emit SetBaseQuota(tokens[i], amounts[i]);
+		}
+	}
+
 	function getRemainQuota(address user, address token) external view returns(uint) {
 		Worker memory worker = workers[user];
 		if(!worker.created) {
 			return 0;
 		}
 
-		uint quota = bank.getTotalShare(token).div(cntOfWorker).mul(basePercent).div(MAG);
 		int128 profit = profits[user][token];
-		if(profit > 0) {
-			uint totalProfit = totalProfits[token];
-			quota = quota.add(uint(profit).mul(MAG.sub(basePercent)).div(totalProfit).div(MAG));
-		} else {
-			uint subQuota = uint(-profit);
-			quota = quota > subQuota ? quota.sub(subQuota): 0;
-		}
+		uint quota = profit > 0 ? baseQuota[token] + uint(profit): baseQuota[token] - uint(-profit);
+		
+		// uint quota = bank.getTotalShare(token).div(cntOfWorker).mul(basePercent).div(MAG);
+		// int128 profit = profits[user][token];
+		// if(profit > 0) {
+		// 	uint totalProfit = totalProfits[token];
+		// 	quota = quota.add(uint(profit).mul(MAG.sub(basePercent)).div(totalProfit).div(MAG));
+		// } else {
+		// 	uint subQuota = uint(-profit);
+		// 	quota = quota > subQuota ? quota.sub(subQuota): 0;
+		// }
 
 		uint investedAmount = invested[user][token];
 		return quota > investedAmount ? quota.sub(investedAmount): 0;

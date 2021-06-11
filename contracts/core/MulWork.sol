@@ -82,7 +82,9 @@ contract MulWork is Permission {
 			return 0;
 		}
 
-		uint quota = baseQuota[token];
+		int128 profit = profits[user][token];
+		uint quota = profit > 0 ? baseQuota[token] + uint(profit): baseQuota[token] - uint(-profit);
+		
 		// uint quota = bank.getTotalShare(token).div(cntOfWorker).mul(basePercent).div(MAG);
 		// int128 profit = profits[user][token];
 		// if(profit > 0) {

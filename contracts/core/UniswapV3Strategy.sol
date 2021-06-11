@@ -60,11 +60,11 @@ contract UniswapV3Strategy is Ownable {
     
     Position[] public positions;
 
-    event Invest(address indexed user, uint positionId, address token0, address token1, uint invest0, uint invest1, uint128 liquidity);
-    event Divest(address indexed user, uint positionId, uint amount0, uint amount1);
+    event Invest(address indexed user, uint positionId, address pool, address token0, address token1, uint invest0, uint invest1, uint128 liquidity);
+    event Divest(address indexed user, uint positionId, uint amount0, uint amount1, bool hedge);
     event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
     event Add(address indexed user, uint positionId, uint amount0, uint amount1, uint128 liquidity);
-    event Switching(address indexed user, uint positionId, uint invest0, uint invest1, uint128 liquidity);
+    event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity, bool hedge);
 
     constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
         factory = _factory;
@@ -95,6 +95,13 @@ contract UniswapV3Strategy is Ownable {
         uint amount1Desired;
         int24 tickLower;
         int24 tickUpper;
+    }
+    
+    struct SwitchParams {
+        int24 tickLower;
+        int24 tickUpper;
+        uint amount0Desired;
+        uint amount1Desired;
     }
 
     modifier onlyEOA() {
@@ -209,12 +216,12 @@ contract UniswapV3Strategy is Ownable {
             tick: tick
         }));
 
-        emit Invest(msg.sender, _nextId, params.token0, params.token1, amount0, amount1, liquidity);
+        emit Invest(msg.sender, _nextId, address(pool), params.token0, params.token1, amount0, amount1, liquidity);
         _nextId++;
     }
 
     function divest(uint positionId, bool hedge) external onlyOperator(positionId)  returns(uint amount0, uint amount1){
-        Position memory pos = positions[positionId];
+        Position storage pos = positions[positionId];
         collect(positionId);
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
         (amount0, amount1) = pool.burn(pos.tick.tickLower, pos.tick.tickUpper, pos.tick.liquidity);
@@ -226,12 +233,11 @@ contract UniswapV3Strategy is Ownable {
         pos.exit1 = hedge ? pos.debt1: amount1;
         pos.close = true;
 
-        emit Divest(msg.sender, positionId, amount0, amount1);
+        emit Divest(msg.sender, positionId, amount0, amount1, hedge);
     }
 
-    function add(uint positionId, uint amount0Desired, uint amount1Desired) external returns(uint amount0, uint amount1, uint128 liquidity) {
+    function add(uint positionId, uint amount0Desired, uint amount1Desired) external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
         Position storage pos = positions[positionId];
-        require(msg.sender == pos.operator && !pos.close && pos.tick.liquidity > 0, "FORBIDDEN");
         
         IUniswapV3Pool pool;
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
@@ -252,38 +258,39 @@ contract UniswapV3Strategy is Ownable {
         emit Add(msg.sender, positionId, amount0, amount1, liquidity);
     }
     
-    function switching(uint positionId, int24 tickLower, int24 tickUpper, uint amount0Desired, uint amount1Desired, bool hedge)
-    external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
+    function switching(uint positionId, SwitchParams memory params, bool hedge)
+    external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
         Position storage pos = positions[positionId];
+        Tick storage tick = pos.tick;
         collect(positionId);
         
-        require(tickLower != pos.tick.tickLower || tickUpper != pos.tick.tickUpper, "NO CHANGE");
-        collect(positionId);
+        require(params.tickLower != tick.tickLower || params.tickUpper != tick.tickUpper, "NO CHANGE");
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
-        (amount0, amount1) = pool.burn(pos.tick.tickLower, pos.tick.tickUpper, pos.tick.liquidity);
-        pool.collect(address(this), pos.tick.tickLower, pos.tick.tickUpper, uint128(amount0), uint128(amount1));
-        _settle(positionId, amount0, amount1, hedge);
-        
+        (exit0, exit1) = pool.burn(tick.tickLower, tick.tickUpper, tick.liquidity);
+        pool.collect(address(this), tick.tickLower, tick.tickUpper, uint128(exit0), uint128(exit1));
+        _settle(positionId, exit0, exit1, hedge);
+
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
             token0: pos.token0,
             token1: pos.token1,
             fee: pos.fee,
-            amount0Desired: amount0Desired,
-            amount1Desired: amount1Desired,
-            tickLower: tickLower,
-            tickUpper: tickUpper
+            amount0Desired: params.amount0Desired,
+            amount1Desired: params.amount1Desired,
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper
         }));
         
-        pos.tick.tickLower = tickLower;
-        pos.tick.tickUpper = tickUpper;
+        tick.tickLower = params.tickLower;
+        tick.tickUpper = params.tickUpper;
         pos.debt0 = amount0;
         pos.debt1 = amount1;
-        pos.tick.liquidity = liquidity;
+        tick.liquidity = liquidity;
         
-        emit Switching(msg.sender, positionId, amount0, amount1, liquidity);
+        bool _hedge = hedge;
+        emit Switching(msg.sender, positionId, exit0, exit1, amount0, amount1, liquidity, _hedge);
     }
 
-    function collect(uint positionId) internal returns(uint128 fee0, uint128 fee1) {
+    function collect(uint positionId) public onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
@@ -324,6 +331,7 @@ contract UniswapV3Strategy is Ownable {
         if(balance > 0) {
             uint toBank = balance.mul(9).div(10);
             IERC20(token).transfer(address(bank), toBank);
+            work.settle(msg.sender, token, 0, int128(toBank));
             IERC20(token).transfer(msg.sender, balance.sub(toBank));
         }
     }
