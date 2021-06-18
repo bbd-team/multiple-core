@@ -399,7 +399,7 @@ describe('Test Uniswap V3', () => {
 
         // await (await strategy.connect(wallet3).divest(0, true, {gasLimit: 8000000})).wait();
 
-        await (await strategy.connect(wallet3).divest(0, false, {gasLimit: 8000000})).wait();
+        await (await strategy.connect(wallet3).divest(0, true, {gasLimit: 8000000})).wait();
         console.log(`strategy balance usdt: ${convertBigNumber(await usdt.balanceOf(strategy.address))} 
         balance btc: ${convertBigNumber(await btc.balanceOf(strategy.address))}
         `)

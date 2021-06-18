@@ -122,7 +122,7 @@ contract UniswapV3Strategy is Ownable {
     function borrow(address token, address payer, uint amount, address to) internal {
         require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
         bank.borrow(token, amount, to);
-        work.addInvestAmount(payer, token, amount);
+        work.settle(payer, token, -int128(amount));
     } 
 
     function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal {
@@ -142,11 +142,11 @@ contract UniswapV3Strategy is Ownable {
         uint balance0 = IERC20(pos.token0).balanceOf(address(this));
         uint balance1 = IERC20(pos.token1).balanceOf(address(this));
         
-        int128 profit0 = balance0 > pos.debt0 ? int128(balance0.sub(pos.debt0)): -int128(pos.debt0.sub(balance0));
-        int128 profit1 = balance1 > pos.debt1 ? int128(balance1.sub(pos.debt1)): -int128(pos.debt1.sub(balance1));
+        // int128 profit0 = balance0 > pos.debt0 ? int128(balance0.sub(pos.debt0)): -int128(pos.debt0.sub(balance0));
+        // int128 profit1 = balance1 > pos.debt1 ? int128(balance1.sub(pos.debt1)): -int128(pos.debt1.sub(balance1));
         
-        work.settle(pos.operator, pos.token0, pos.debt0, profit0);
-        work.settle(pos.operator, pos.token1, pos.debt1, profit1);
+        work.settle(pos.operator, pos.token0, int128(balance0));
+        work.settle(pos.operator, pos.token1, int128(balance1));
 
         IERC20(pos.token0).transfer(address(bank), balance0);
         IERC20(pos.token1).transfer(address(bank), balance1);
@@ -319,7 +319,8 @@ contract UniswapV3Strategy is Ownable {
         if(amount > 0) {
             uint toBank = amount.mul(9).div(10);
             IERC20(token).transfer(address(bank), toBank);
-            work.settle(msg.sender, token, 0, int128(toBank));
+            // work.settle(msg.sender, token, 0, int128(toBank));
+            work.settle(msg.sender, token, int128(toBank));
             IERC20(token).transfer(msg.sender, amount.sub(toBank));
         }
     }

@@ -108,7 +108,7 @@ async function deploy() {
   await (await mulWork.addPermission(strategy.address)).wait();
 
   console.log("add quota")
-  await (await mulWork.connect(wallet1).setBaseQuota([usdc, eth], [toTokenAmount('100000'), toTokenAmount('100')])).wait();
+  await (await mulWork.connect(wallet1).setBaseQuota([usdc, eth], [toTokenAmount('100000', 6), toTokenAmount('100')])).wait();
 
   await deposit(mulBank.address);
 

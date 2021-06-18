@@ -39,7 +39,7 @@ contract MulWork is Permission {
 	event SetBaseQuota(address indexed token, uint amount);
 	event UpdateBasePercent(uint oldBasePercent, uint newBasePercent);
 	event Invest(address indexed user, address token, uint amount);
-	event Settle(address indexed user, address token, uint amount, int128 profit);
+	event Settle(address indexed user, address token, int128 profit);
 
 	constructor(IERC20 _gpToken, IERC20 _mulToken, IMulBank _bank) {
 		GPToken = _gpToken;
@@ -83,8 +83,8 @@ contract MulWork is Permission {
 		}
 
 		int128 profit = profits[user][token];
-		uint quota = profit > 0 ? baseQuota[token] + uint(profit): baseQuota[token] - uint(-profit);
-		
+		int128 quota = int128(baseQuota[token]) + profit > 0 ? int128(baseQuota[token]) + profit: 0;
+		// uint quota = profit > 0 ? baseQuota[token] + uint(profit): baseQuota[token] - uint(-profit);
 		// uint quota = bank.getTotalShare(token).div(cntOfWorker).mul(basePercent).div(MAG);
 		// int128 profit = profits[user][token];
 		// if(profit > 0) {
@@ -95,29 +95,46 @@ contract MulWork is Permission {
 		// 	quota = quota > subQuota ? quota.sub(subQuota): 0;
 		// }
 
-		uint investedAmount = invested[user][token];
-		return quota > investedAmount ? quota.sub(investedAmount): 0;
+		// uint investedAmount = invested[user][token];
+		// return quota > investedAmount ? quota.sub(investedAmount): 0;
+		return uint(quota);
 	}
 
-	function addInvestAmount(address user, address token, uint amount) external onlyPermission {
-		invested[user][token] = invested[user][token].add(amount);
-		emit Invest(user, token, amount);
-	}
+	// function addInvestAmount(address user, address token, uint amount) external onlyPermission {
+	// 	invested[user][token] = invested[user][token].add(amount);
+	// 	emit Invest(user, token, amount);
+	// }
 
-	function settle(address user, address token, uint amount, int128 profit) external onlyPermission {
-		invested[user][token] = invested[user][token].sub(amount);
+	// function settle(address user, address token, uint amount, int128 profit) external onlyPermission {
+	// 	invested[user][token] = invested[user][token].sub(amount);
 		
-		int128 oldProfit = profits[user][token];
-		uint totalProfit = totalProfits[token];
-		if(oldProfit > 0) 
-			totalProfit = totalProfit.sub(uint(oldProfit));
-		int128 newProfit = oldProfit + profit;
-		if(newProfit > 0) 
-			totalProfit = totalProfit.add(uint(newProfit));
+	// 	int128 oldProfit = profits[user][token];
+	// 	uint totalProfit = totalProfits[token];
+	// 	if(oldProfit > 0) 
+	// 		totalProfit = totalProfit.sub(uint(oldProfit));
+	// 	int128 newProfit = oldProfit + profit;
+	// 	if(newProfit > 0) 
+	// 		totalProfit = totalProfit.add(uint(newProfit));
 
-		totalProfits[token] = totalProfit;
+	// 	totalProfits[token] = totalProfit;
+	// 	profits[user][token] = profits[user][token] + profit;
+	// 	emit Settle(user, token, amount, profit);
+	// }
+
+	function settle(address user, address token, int128 profit) external onlyPermission {
 		profits[user][token] = profits[user][token] + profit;
-		emit Settle(user, token, amount, profit);
+		
+		// int128 oldProfit = profits[user][token];
+		// uint totalProfit = totalProfits[token];
+		// if(oldProfit > 0) 
+		// 	totalProfit = totalProfit.sub(uint(oldProfit));
+		// int128 newProfit = oldProfit + profit;
+		// if(newProfit > 0) 
+		// 	totalProfit = totalProfit.add(uint(newProfit));
+
+		// totalProfits[token] = totalProfit;
+		// profits[user][token] = profits[user][token] + profit;
+		emit Settle(user, token, profit);
 	}
 }
 
