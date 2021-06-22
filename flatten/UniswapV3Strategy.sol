@@ -1807,7 +1807,8 @@ interface IMulWork {
 
 	function addInvestAmount(address user, address token, uint amount) external;
 
-	function settle(address user, address token, uint amount, int128 profit) external; 
+	// function settle(address user, address token, uint amount, int128 profit) external; 
+	function settle(address user, address token, int128 profit) external; 
 }
 
 // Dependency file: contracts/core/interfaces/IMulBank.sol
@@ -1882,11 +1883,6 @@ contract UniswapV3Strategy is Ownable {
     uint176 public _nextId = 0;
     address public rewardAddr;
 
-    /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
-    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
-    /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
-
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
     Position[] public positions;
@@ -1910,13 +1906,6 @@ contract UniswapV3Strategy is Ownable {
         uint24 fee;
         address payer;
     }
-
-    // struct SwapCallbackData {
-    //     address tokenIn;
-    //     address tokenOut;
-    //     uint24 fee;
-    //     uint positionId;
-    // }
     
     struct MintParams {
         address token0;
@@ -1926,6 +1915,13 @@ contract UniswapV3Strategy is Ownable {
         uint amount1Desired;
         int24 tickLower;
         int24 tickUpper;
+    }
+    
+    struct SwitchParams {
+        int24 tickLower;
+        int24 tickUpper;
+        uint amount0Desired;
+        uint amount1Desired;
     }
 
     modifier onlyEOA() {
@@ -1958,7 +1954,7 @@ contract UniswapV3Strategy is Ownable {
     function borrow(address token, address payer, uint amount, address to) internal {
         require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
         bank.borrow(token, amount, to);
-        work.addInvestAmount(payer, token, amount);
+        work.settle(payer, token, -int128(amount));
     } 
 
     function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal {
@@ -1978,11 +1974,11 @@ contract UniswapV3Strategy is Ownable {
         uint balance0 = IERC20(pos.token0).balanceOf(address(this));
         uint balance1 = IERC20(pos.token1).balanceOf(address(this));
         
-        int128 profit0 = balance0 > pos.debt0 ? int128(balance0.sub(pos.debt0)): -int128(pos.debt0.sub(balance0));
-        int128 profit1 = balance1 > pos.debt1 ? int128(balance1.sub(pos.debt1)): -int128(pos.debt1.sub(balance1));
+        // int128 profit0 = balance0 > pos.debt0 ? int128(balance0.sub(pos.debt0)): -int128(pos.debt0.sub(balance0));
+        // int128 profit1 = balance1 > pos.debt1 ? int128(balance1.sub(pos.debt1)): -int128(pos.debt1.sub(balance1));
         
-        work.settle(pos.operator, pos.token0, pos.debt0, profit0);
-        work.settle(pos.operator, pos.token1, pos.debt1, profit1);
+        work.settle(pos.operator, pos.token0, int128(balance0));
+        work.settle(pos.operator, pos.token1, int128(balance1));
 
         IERC20(pos.token0).transfer(address(bank), balance0);
         IERC20(pos.token1).transfer(address(bank), balance1);
@@ -2061,8 +2057,7 @@ contract UniswapV3Strategy is Ownable {
     }
 
     function add(uint positionId, uint amount0Desired, uint amount1Desired) external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
-        Position storage pos = positions[positionId];
-        
+        Position storage pos = positions[positionId]; 
         IUniswapV3Pool pool;
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
             token0: pos.token0,
@@ -2073,44 +2068,47 @@ contract UniswapV3Strategy is Ownable {
             tickLower: pos.tick.tickLower,
             tickUpper: pos.tick.tickUpper
         }));
-        
+
+        collect(positionId);
+
         pos.tick.liquidity = pos.tick.liquidity + liquidity;
         pos.debt0 = pos.debt0.add(amount0);
         pos.debt1 = pos.debt1.add(amount1);
-        collect(positionId);
+        
         
         emit Add(msg.sender, positionId, amount0, amount1, liquidity);
     }
     
-    function switching(uint positionId, int24 tickLower, int24 tickUpper, uint amount0Desired, uint amount1Desired, bool hedge)
+    function switching(uint positionId, SwitchParams memory params, bool hedge)
     external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         collect(positionId);
         
-        require(tickLower != tick.tickLower || tickUpper != tick.tickUpper, "NO CHANGE");
+        require(params.tickLower != tick.tickLower || params.tickUpper != tick.tickUpper, "NO CHANGE");
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
         (exit0, exit1) = pool.burn(tick.tickLower, tick.tickUpper, tick.liquidity);
-        pool.collect(address(this), tick.tickLower, tick.tickUpper, uint128(amount0), uint128(amount1));
-        _settle(positionId, amount0, amount1, hedge);
+        pool.collect(address(this), tick.tickLower, tick.tickUpper, uint128(exit0), uint128(exit1));
+        _settle(positionId, exit0, exit1, hedge);
 
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
             token0: pos.token0,
             token1: pos.token1,
             fee: pos.fee,
-            amount0Desired: amount0Desired,
-            amount1Desired: amount1Desired,
-            tickLower: tickLower,
-            tickUpper: tickUpper
+            amount0Desired: params.amount0Desired,
+            amount1Desired: params.amount1Desired,
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper
         }));
         
-        tick.tickLower = tickLower;
-        tick.tickUpper = tickUpper;
+        tick.tickLower = params.tickLower;
+        tick.tickUpper = params.tickUpper;
         pos.debt0 = amount0;
         pos.debt1 = amount1;
         tick.liquidity = liquidity;
         
-        emit Switching(msg.sender, positionId, exit0, exit1, amount0, amount1, liquidity, hedge);
+        bool _hedge = hedge;
+        emit Switching(msg.sender, positionId, exit0, exit1, amount0, amount1, liquidity, _hedge);
     }
 
     function collect(uint positionId) public onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
@@ -2136,12 +2134,12 @@ contract UniswapV3Strategy is Ownable {
                 )
             );
 
-        pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
+        (fee0, fee1) = pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
         tick.fee0 = tick.fee0.add(fee0);
         tick.fee1 = tick.fee1.add(fee1);
 
-        distributeFee(pos.token0);
-        distributeFee(pos.token1);
+        distributeFee(pos.token0, fee0);
+        distributeFee(pos.token1, fee1);
 
         tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
@@ -2149,13 +2147,13 @@ contract UniswapV3Strategy is Ownable {
         emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
-    function distributeFee(address token) internal {
-        uint balance = IERC20(token).balanceOf(address(this));
-        if(balance > 0) {
-            uint toBank = balance.mul(9).div(10);
+    function distributeFee(address token, uint amount) internal {
+        if(amount > 0) {
+            uint toBank = amount.mul(9).div(10);
             IERC20(token).transfer(address(bank), toBank);
-            work.settle(msg.sender, token, 0, int128(toBank));
-            IERC20(token).transfer(msg.sender, balance.sub(toBank));
+            // work.settle(msg.sender, token, 0, int128(toBank));
+            work.settle(msg.sender, token, int128(toBank));
+            IERC20(token).transfer(msg.sender, amount.sub(toBank));
         }
     }
 }

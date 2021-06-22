@@ -9,5 +9,6 @@ interface IMulWork {
 
 	function addInvestAmount(address user, address token, uint amount) external;
 
-	function settle(address user, address token, uint amount, int128 profit) external; 
+	// function settle(address user, address token, uint amount, int128 profit) external; 
+	function settle(address user, address token, int128 profit) external; 
 }

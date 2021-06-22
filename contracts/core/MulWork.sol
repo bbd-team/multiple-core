@@ -3,6 +3,7 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "./interfaces/IMulBank.sol";
 import "./base/Permission.sol";
@@ -13,8 +14,7 @@ contract MulWork is Permission {
 
     uint constant public MAG = 1e18;
 
-	IERC20 public GPToken;
-	IERC20 public MulToken;
+	IERC721 public GPToken;
 	IMulBank public bank;
 
 	struct Worker {
@@ -26,36 +26,25 @@ contract MulWork is Permission {
 	}
 
 	mapping (address => Worker) public workers;
-	mapping (address => mapping(address => uint)) public invested;
 	mapping (address => mapping(address => int128)) public profits;
 
 	mapping (address => uint) public baseQuota;
 
-	mapping (address => uint) totalProfits;
 	uint public cntOfWorker;
 	uint public basePercent = MAG;
 
-	event AccountCreated(address indexed user);
+	event AccountCreated(address indexed user, uint tokenId);
 	event SetBaseQuota(address indexed token, uint amount);
-	event UpdateBasePercent(uint oldBasePercent, uint newBasePercent);
-	event Invest(address indexed user, address token, uint amount);
 	event Settle(address indexed user, address token, int128 profit);
 
-	constructor(IERC20 _gpToken, IERC20 _mulToken, IMulBank _bank) {
+	constructor(IERC721 _gpToken, IMulBank _bank) {
 		GPToken = _gpToken;
-		MulToken = _mulToken;
 		bank = _bank;
 	}
 
-    function setBasePercent(uint _newBasePercent) onlyOwner external {
-    	require(_newBasePercent >= 0 && _newBasePercent <= MAG, "INVALID BASE PERCENT");
-    	emit UpdateBasePercent(basePercent, _newBasePercent);
-    	basePercent = _newBasePercent;
-    }
-
-	function createAccount() external {
+	function createAccount(uint tokenId) external {
 		require(!workers[msg.sender].created, "ALREADY CREATED");
-		// GPToken.safeTransferFrom(msg.sender, address(this), 1);
+		GPToken.safeTransferFrom(msg.sender, address(this), tokenId);
 		cntOfWorker++;
 		workers[msg.sender] = Worker({
 			created: true,
@@ -64,7 +53,7 @@ contract MulWork is Permission {
 			lastWorkTime: 0,
 			workerId: cntOfWorker
 			});
-		emit AccountCreated(msg.sender);
+		emit AccountCreated(msg.sender, tokenId);
 	}
 
 	function setBaseQuota(address[] calldata tokens, uint[] memory amounts) external onlyOwner {
@@ -76,6 +65,13 @@ contract MulWork is Permission {
 		}
 	}
 
+	function upgrade(address newContract, uint[] memory tokenIds) external onlyOwner {
+		uint cnt = tokenIds.length;
+		for(uint i = 0;i < cnt;i++) {
+			GPToken.safeTransferFrom(address(this), newContract, tokenIds[i]);
+		}
+	}
+
 	function getRemainQuota(address user, address token) external view returns(uint) {
 		Worker memory worker = workers[user];
 		if(!worker.created) {
@@ -84,56 +80,12 @@ contract MulWork is Permission {
 
 		int128 profit = profits[user][token];
 		int128 quota = int128(baseQuota[token]) + profit > 0 ? int128(baseQuota[token]) + profit: 0;
-		// uint quota = profit > 0 ? baseQuota[token] + uint(profit): baseQuota[token] - uint(-profit);
-		// uint quota = bank.getTotalShare(token).div(cntOfWorker).mul(basePercent).div(MAG);
-		// int128 profit = profits[user][token];
-		// if(profit > 0) {
-		// 	uint totalProfit = totalProfits[token];
-		// 	quota = quota.add(uint(profit).mul(MAG.sub(basePercent)).div(totalProfit).div(MAG));
-		// } else {
-		// 	uint subQuota = uint(-profit);
-		// 	quota = quota > subQuota ? quota.sub(subQuota): 0;
-		// }
-
-		// uint investedAmount = invested[user][token];
-		// return quota > investedAmount ? quota.sub(investedAmount): 0;
 		return uint(quota);
 	}
 
-	// function addInvestAmount(address user, address token, uint amount) external onlyPermission {
-	// 	invested[user][token] = invested[user][token].add(amount);
-	// 	emit Invest(user, token, amount);
-	// }
-
-	// function settle(address user, address token, uint amount, int128 profit) external onlyPermission {
-	// 	invested[user][token] = invested[user][token].sub(amount);
-		
-	// 	int128 oldProfit = profits[user][token];
-	// 	uint totalProfit = totalProfits[token];
-	// 	if(oldProfit > 0) 
-	// 		totalProfit = totalProfit.sub(uint(oldProfit));
-	// 	int128 newProfit = oldProfit + profit;
-	// 	if(newProfit > 0) 
-	// 		totalProfit = totalProfit.add(uint(newProfit));
-
-	// 	totalProfits[token] = totalProfit;
-	// 	profits[user][token] = profits[user][token] + profit;
-	// 	emit Settle(user, token, amount, profit);
-	// }
 
 	function settle(address user, address token, int128 profit) external onlyPermission {
 		profits[user][token] = profits[user][token] + profit;
-		
-		// int128 oldProfit = profits[user][token];
-		// uint totalProfit = totalProfits[token];
-		// if(oldProfit > 0) 
-		// 	totalProfit = totalProfit.sub(uint(oldProfit));
-		// int128 newProfit = oldProfit + profit;
-		// if(newProfit > 0) 
-		// 	totalProfit = totalProfit.add(uint(newProfit));
-
-		// totalProfits[token] = totalProfit;
-		// profits[user][token] = profits[user][token] + profit;
 		emit Settle(user, token, profit);
 	}
 }
