@@ -38,6 +38,8 @@ contract MulWork is Permission {
 	event Settle(address indexed user, address token, int128 profit);
 
 	constructor(IERC721 _gpToken, IMulBank _bank) {
+		require(address(_gpToken) != address(0), "INVALID_ADDRESS");
+		require(address(_bank) != address(0), "INVALID_ADDRESS");
 		GPToken = _gpToken;
 		bank = _bank;
 	}

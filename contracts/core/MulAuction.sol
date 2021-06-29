@@ -32,8 +32,15 @@ contract MulAuction is Ownable {
     Pool[] public pools;
     
     constructor(IERC721 _GPToken, IERC20 _MulToken) {
+    	require(address(_GPToken) != address(0), "INVALID_ADDRESS");
+		require(address(_MulToken) != address(0), "INVALID_ADDRESS");
         GPToken = _GPToken;
         MulToken = _MulToken;
+    }
+
+    modifier validatePoolByPid(uint _pid) {
+    	require(_pid < cntOfPool, "Pool does not exist");
+    	_;
     }
     
     function create(uint startTime, uint maxTime, uint plusTime, uint basePrice, uint addPrice, uint tokenId) external onlyOwner {
@@ -50,6 +57,7 @@ contract MulAuction is Ownable {
         });
         
         pools.push(pool);
+        cntOfPool++;
         emit Create(cntOfPool, tokenId, basePrice, addPrice, plusTime, maxTime);
     }
     
@@ -57,7 +65,7 @@ contract MulAuction is Ownable {
         return a < b ? a: b;
     }
     
-    function bid(uint pid, uint bidPrice) external {
+    function bid(uint pid, uint bidPrice) external validatePoolByPid(pid) {
         Pool storage pool = pools[pid];
         require(!pool.end, "Pool End");
         require(block.number < pool.closeTime, "Cannot Bid Now");
@@ -75,7 +83,7 @@ contract MulAuction is Ownable {
         emit Bid(pid, msg.sender, bidPrice);
     }
     
-    function claim(uint pid) external {
+    function claim(uint pid) external validatePoolByPid(pid) {
         Pool storage pool = pools[pid];
         require(!pool.end, "Pool End");
         require(block.number >= pool.closeTime, "Not Close Now");
@@ -89,7 +97,7 @@ contract MulAuction is Ownable {
         emit Claim(pid, pool.currentPrice, pool.bidder);
     }
     
-    function stop(uint pid) external onlyOwner {
+    function stop(uint pid) external onlyOwner validatePoolByPid(pid){
         Pool storage pool = pools[pid];
         require(!pool.end, "Pool End");
         

@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/Create2.sol";
 import "./MulERC20.sol";
 import "./interfaces/ICompoundCERC20.sol";
 import "./interfaces/ICompoundCETH.sol";
-import "./MulERC20.sol";
 import "./base/Permission.sol";
 
 contract MulBank is Permission {

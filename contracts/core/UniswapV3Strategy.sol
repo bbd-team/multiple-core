@@ -17,7 +17,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "./interfaces/IMulWork.sol";
 import "./interfaces/IMulBank.sol";
 
-contract UniswapV3Strategy is Ownable {
+contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -62,6 +62,10 @@ contract UniswapV3Strategy is Ownable {
     event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity, bool hedge);
 
     constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
+        require(address(_factory) != address(0), "INVALID_ADDRESS");
+        require(address(_work) != address(0), "INVALID_ADDRESS");
+        require(address(_bank) != address(0), "INVALID_ADDRESS");
+        require(_rewardAddr != address(0), "INVALID_ADDRESS");
         factory = _factory;
         work = _work;
         bank = _bank;
@@ -125,7 +129,7 @@ contract UniswapV3Strategy is Ownable {
         work.settle(payer, token, -int128(amount));
     } 
 
-    function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal {
+    function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal nonReentrant {
         Position storage pos = positions[positionId];
         if(hedge) {
             if(amount0 > pos.debt0) {
@@ -315,7 +319,7 @@ contract UniswapV3Strategy is Ownable {
         emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
-    function distributeFee(address token, uint amount) internal {
+    function distributeFee(address token, uint amount) internal nonReentrant {
         if(amount > 0) {
             uint toBank = amount.mul(9).div(10);
             IERC20(token).transfer(address(bank), toBank);
