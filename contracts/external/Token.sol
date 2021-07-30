@@ -8,7 +8,6 @@ pragma solidity >=0.6.5 <0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./Upgradable.sol";
 
 // 测试生成ERC20的合约
 
@@ -16,7 +15,7 @@ import "./Upgradable.sol";
 // ERC20 Token, with the addition of symbol, name and decimals and a
 // fixed supply
 // ----------------------------------------------------------------------------
-contract Token is ERC20, UpgradableProduct {
+contract Token is ERC20 {
     constructor(
         string memory _symbol,
         string memory _name,
@@ -28,18 +27,5 @@ contract Token is ERC20, UpgradableProduct {
         if (_total > 0) {
             _mint(msg.sender, _total * 10**uint256(decimals()));
         }
-    }
-
-    // 允许增发
-    function mint(address account, uint256 amount)
-        external
-        virtual
-        requireImpl
-    {
-        _mint(account, amount);
-    }
-
-    function burn(uint256 amount) external virtual {
-        _burn(msg.sender, amount);
     }
 }

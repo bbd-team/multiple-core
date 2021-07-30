@@ -165,7 +165,7 @@ contract MulBank is Permission {
         uint totalShare = getTotalShare(address(pool.supplyToken));
         uint share = totalShare == 0 ? amount: amount.mul(pool.supplyToken.totalSupply()).div(totalShare);
 
-        pool.shareToken.mint(msg.sender, amount);
+        pool.shareToken.mint(msg.sender, share);
         pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         pool.totalDeposit = pool.totalDeposit.add(amount);
 
@@ -182,7 +182,7 @@ contract MulBank is Permission {
         uint amount = share.mul(totalShare).div(pool.supplyToken.totalSupply());
         require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");
 
-        pool.shareToken.burn(msg.sender, amount);
+        pool.shareToken.burn(msg.sender, share);
         pool.supplyToken.safeTransfer(msg.sender, amount);
         pool.totalDeposit = pool.totalDeposit.sub(amount);
 
