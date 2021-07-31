@@ -163,7 +163,7 @@ contract MulBank is Permission {
         PoolInfo storage pool = poolInfo[token];
         
         uint totalShare = getTotalShare(address(pool.supplyToken));
-        uint share = totalShare == 0 ? amount: amount.mul(pool.supplyToken.totalSupply()).div(totalShare);
+        uint share = totalShare == 0 ? amount: amount.mul(pool.shareToken.totalSupply()).div(totalShare);
 
         pool.shareToken.mint(msg.sender, share);
         pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -179,7 +179,7 @@ contract MulBank is Permission {
         require(pool.shareToken.balanceOf(msg.sender) >= share, "INVALID WITHDRAW SHARE");
         uint totalShare = getTotalShare(address(pool.supplyToken));
 
-        uint amount = share.mul(totalShare).div(pool.supplyToken.totalSupply());
+        uint amount = share.mul(totalShare).div(pool.shareToken.totalSupply());
         require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");
 
         pool.shareToken.burn(msg.sender, share);
