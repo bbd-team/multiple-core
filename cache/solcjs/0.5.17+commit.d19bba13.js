@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>bin/soljson-0.5.17 commit.d19bba13.js</Key><RequestId>4T2M0YDK5JVE49WQ</RequestId><HostId>6EWqi3UvgrldmYv39wNogJ3pAY5lE/zeHRlqcnB/gBX+PPkddWzgI5EFeA5uwA7QyPiaDbjCxc8=</HostId></Error>
