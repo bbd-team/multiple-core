@@ -26,7 +26,7 @@ contract MulBank is Permission {
     mapping(address => PoolInfo) public poolInfo;
 
     uint256 public cntOfPool;
-    address WETH9;
+    address public WETH9;
 
     event PoolInitialized(address indexed supplyToken, address shareToken);
     event CompoundInitialized(address indexed token, address cToken);
@@ -92,7 +92,7 @@ contract MulBank is Permission {
         pool.shareToken.mint(msg.sender, share);
         if(token == WETH9) {
             require(msg.value == amount, "INVALID ETH VALUE");
-            IWETH9(WETH9).deposit{value: msg.value};
+            IWETH9(WETH9).deposit{value: msg.value}();
         } else {
             pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         }
@@ -112,8 +112,13 @@ contract MulBank is Permission {
         require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");
 
         pool.shareToken.burn(msg.sender, share);
-        pool.supplyToken.safeTransfer(msg.sender, amount);
         pool.totalDeposit = pool.totalDeposit.sub(amount);
+        if(token == WETH9) {
+            IWETH9(WETH9).withdraw(amount);
+            msg.sender.transfer(amount);
+        } else {
+            pool.supplyToken.safeTransfer(msg.sender, amount);
+        }
 
         emit Withdraw(msg.sender, amount, share);
     }

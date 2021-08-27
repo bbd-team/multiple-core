@@ -78,6 +78,8 @@ describe("Invest", function() {
       await (await bank.initPool(usdc.address)).wait();
       await (await bank.initPool(uni.address)).wait();
       await (await bank.initPool(eth.address)).wait();
+
+      await (await bank.addReamins([usdc.address, uni.address, eth.address], [toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000')]))
       console.log("complete");
     }
 
@@ -89,6 +91,10 @@ describe("Invest", function() {
       await usdc.transfer(lp2.address, toTokenAmount('1000000'));
       await eth.transfer(lp2.address, toTokenAmount('1000000'));
       await uni.transfer(lp2.address, toTokenAmount('1000000'));
+
+      await usdc.transfer(gp1.address, toTokenAmount('1000000'));
+      await eth.transfer(gp1.address, toTokenAmount('1000000'));
+      await uni.transfer(gp1.address, toTokenAmount('1000000'));
 
       await usdc.approve(positionManager.address, constants.MaxUint256);
       await eth.approve(positionManager.address, constants.MaxUint256);
@@ -159,7 +165,7 @@ describe("Invest", function() {
         await gp.mint(gp1.address, 1);
         await gp.mint(gp2.address, 2);
 
-        const WETH = await ethers.getContractFactory("WETH");
+        const WETH = await ethers.getContractFactory("WETH9");
         weth = await WETH.deploy();
 
         const Factory = await ethers.getContractFactory(UniswapV3Factory.abi, UniswapV3Factory.bytecode);
@@ -175,13 +181,13 @@ describe("Invest", function() {
         router = await Router.deploy(factory.address, weth.address);
 
         const Bank = await ethers.getContractFactory("MulBank");
-        bank = await Bank.deploy();
+        bank = await Bank.deploy(weth.address);
 
         const Work = await ethers.getContractFactory("MulWork");
         work = await Work.deploy(gp.address, bank.address);
 
-        const Strategy = await ethers.getContractFactory("UniswapV3StrategyUni");
-        strategy     = await Strategy.deploy(positionManager.address, work.address, bank.address);
+        const Strategy = await ethers.getContractFactory("UniswapV3Strategy");
+        strategy     = await Strategy.deploy(factory.address, work.address, bank.address);
 
         await initBank();
         await initWork();
@@ -252,6 +258,14 @@ describe("Invest", function() {
         await swap(usdc, eth, toTokenAmount("2000"));
         await swap(eth, usdc, toTokenAmount("1000"));
 
-        
+        console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(gp1.address))}
+        `)
+
+        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000})).wait();
+
+        console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(gp1.address))}
+        `)
       });
 })

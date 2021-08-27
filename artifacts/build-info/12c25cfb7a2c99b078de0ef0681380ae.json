@@ -1,0 +1,444 @@
+{
+  "id": "12c25cfb7a2c99b078de0ef0681380ae",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.7.6",
+  "solcLongVersion": "0.7.6+commit.7338295f",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/interfaces/ICompoundCETH.sol": {
+        "content": "// SPDX-License-Identifier: GPL-2.0-or-later\npragma solidity ^0.7.0;\n\ninterface ICompoundCETH {\n    function mint() external payable;\n\n    function redeem(uint256 redeemTokens) external returns (uint256);\n\n    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);\n\n    function balanceOf(address account) external view returns (uint256);\n}\n"
+      }
+    },
+    "settings": {
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "contracts/interfaces/ICompoundCETH.sol": {
+        "ICompoundCETH": {
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "account",
+                  "type": "address"
+                }
+              ],
+              "name": "balanceOf",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "mint",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "redeemTokens",
+                  "type": "uint256"
+                }
+              ],
+              "name": "redeem",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "redeemAmount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "redeemUnderlying",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "balanceOf(address)": "70a08231",
+              "mint()": "1249c58b",
+              "redeem(uint256)": "db006a75",
+              "redeemUnderlying(uint256)": "852a12e3"
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "contracts/interfaces/ICompoundCETH.sol": {
+        "ast": {
+          "absolutePath": "contracts/interfaces/ICompoundCETH.sol",
+          "exportedSymbols": {
+            "ICompoundCETH": [
+              26
+            ]
+          },
+          "id": 27,
+          "license": "GPL-2.0-or-later",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "^",
+                "0.7",
+                ".0"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "45:23:0"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "interface",
+              "fullyImplemented": false,
+              "id": 26,
+              "linearizedBaseContracts": [
+                26
+              ],
+              "name": "ICompoundCETH",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "functionSelector": "1249c58b",
+                  "id": 4,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "mint",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 2,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "113:2:0"
+                  },
+                  "returnParameters": {
+                    "id": 3,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "132:0:0"
+                  },
+                  "scope": 26,
+                  "src": "100:33:0",
+                  "stateMutability": "payable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "db006a75",
+                  "id": 11,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "redeem",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 7,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 6,
+                        "mutability": "mutable",
+                        "name": "redeemTokens",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 11,
+                        "src": "155:20:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 5,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "155:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "154:22:0"
+                  },
+                  "returnParameters": {
+                    "id": 10,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 9,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 11,
+                        "src": "195:7:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 8,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "195:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "194:9:0"
+                  },
+                  "scope": 26,
+                  "src": "139:65:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "852a12e3",
+                  "id": 18,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "redeemUnderlying",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 14,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 13,
+                        "mutability": "mutable",
+                        "name": "redeemAmount",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 18,
+                        "src": "236:20:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 12,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "236:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "235:22:0"
+                  },
+                  "returnParameters": {
+                    "id": 17,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 16,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 18,
+                        "src": "276:7:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 15,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "276:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "275:9:0"
+                  },
+                  "scope": 26,
+                  "src": "210:75:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "70a08231",
+                  "id": 25,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "balanceOf",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 21,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 20,
+                        "mutability": "mutable",
+                        "name": "account",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 25,
+                        "src": "310:15:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 19,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "310:7:0",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "309:17:0"
+                  },
+                  "returnParameters": {
+                    "id": 24,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 23,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 25,
+                        "src": "350:7:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 22,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "350:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "349:9:0"
+                  },
+                  "scope": 26,
+                  "src": "291:68:0",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 27,
+              "src": "70:291:0"
+            }
+          ],
+          "src": "45:317:0"
+        },
+        "id": 0
+      }
+    }
+  }
+}

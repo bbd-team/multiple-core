@@ -32,6 +32,10 @@ module.exports = {
   	jingshi: {
       url: `http://120.92.137.203:9009/`,
       accounts: [`0x${PRIVATE_KEY}`],
+    },
+    mainnet: {
+      url: `https://jsonrpc.maiziqianbao.net`,
+      accounts: [`0x${PRIVATE_KEY}`],
     }
   }
 };

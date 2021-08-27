@@ -17,6 +17,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 import "./interfaces/IMulWork.sol";
 import "./interfaces/IMulBank.sol";
+import "./interfaces/IWETH9.sol";
 
 contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -49,15 +50,18 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
     IMulBank public bank;
     IMulWork public work;
+    address public WETH9;
     uint176 public _nextId = 0;
+    uint public feePercent = 6000;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
     Position[] public positions;
 
+    event UpdateFeePercent(uint newPercent);
     event Invest(address indexed user, uint positionId, address pool, address token0, address token1, uint invest0, uint invest1, uint128 liquidity);
     event Divest(address indexed user, uint positionId, uint amount0, uint amount1, bool hedge);
-    event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
+    event Collect(address indexed user, uint positionId, uint fee0, uint fee1, uint feePercent);
     event Add(address indexed user, uint positionId, uint amount0, uint amount1, uint128 liquidity);
     event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity, bool hedge);
 
@@ -68,6 +72,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         factory = _factory;
         work = _work;
         bank = _bank;
+        WETH9 = bank.WETH9();
     }
 
     struct MintCallbackData {
@@ -105,6 +110,15 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         _;
     }
 
+    receive() external payable {
+        require(msg.sender == WETH9, 'Not WETH9');
+    }
+
+    function updateFeePercent(uint _newPercent) external onlyOwner {
+        feePercent = _newPercent;
+        emit UpdateFeePercent(_newPercent);
+    }
+
     function toInt128(int256 y) internal pure returns (int128 z) {
         require((z = int128(y)) == y);
     }
@@ -125,19 +139,39 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         require(work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
         bank.borrow(token, amount, to);
         work.settle(payer, token, -int128(amount));
-    } 
+    }
+
+    function payFrom(address token, uint amount) internal {
+        if(token == WETH9) {
+            require(msg.value == amount, "INVALID ETH VALUE");
+            IWETH9(WETH9).deposit{value: msg.value}();
+        } else {
+            IERC20(token).transferFrom(msg.sender, address(this), amount);
+        }
+
+    }
+
+    function payTo(address token, uint amount) internal {
+        if(token == WETH9) {
+            IWETH9(WETH9).withdraw(amount);
+            msg.sender.transfer(amount);
+        } else {
+            IERC20(token).transfer(msg.sender, amount);
+        }
+    }
 
     function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal nonReentrant {
         Position storage pos = positions[positionId];
         if(hedge) {
+            
             if(amount0 > pos.debt0) {
-                IERC20(pos.token0).transfer(msg.sender, amount0.sub(pos.debt0));
-                IERC20(pos.token1).transferFrom(msg.sender, address(this), pos.debt1.sub(amount1));
+                payTo(pos.token0, amount0.sub(pos.debt0));
+                payFrom(pos.token1, pos.debt1.sub(amount1));
             } 
             
             if(amount1 > pos.debt1) {
-                IERC20(pos.token0).transferFrom(msg.sender, address(this), pos.debt0.sub(amount0));
-                IERC20(pos.token1).transfer(msg.sender, amount1.sub(pos.debt1));
+                payFrom(pos.token0, pos.debt0.sub(amount0));
+                payTo(pos.token1, amount1.sub(pos.debt1));
             }
         }
         
@@ -210,7 +244,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         _nextId++;
     }
 
-    function divest(uint positionId, bool hedge) external onlyOperator(positionId)  returns(uint amount0, uint amount1){
+    function divest(uint positionId, bool hedge) public payable onlyOperator(positionId)  returns(uint amount0, uint amount1){
         Position storage pos = positions[positionId];
         collect(positionId);
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
@@ -250,7 +284,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     }
     
     function switching(uint positionId, SwitchParams memory params, bool hedge)
-    external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
+    external onlyOperator(positionId) payable returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         collect(positionId);
@@ -305,23 +339,28 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
             );
 
         (fee0, fee1) = pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
-        tick.fee0 = tick.fee0.add(fee0);
-        tick.fee1 = tick.fee1.add(fee1);
+        if(msg.sender == address(this)) {
+            tick.fee0 = tick.fee0.add(fee0);
+            tick.fee1 = tick.fee1.add(fee1);
 
-        distributeFee(pos.token0, fee0);
-        distributeFee(pos.token1, fee1);
+            distributeFee(pos.token0, fee0);
+            distributeFee(pos.token1, fee1);
 
-        tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
-        tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+            tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
+            tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+        }
+    
+        emit Collect(pos.operator, positionId, fee0, fee1, feePercent);
+    }
 
-        emit Collect(pos.operator, positionId, fee0, fee1);
+    function liquidation(uint positionId) external onlyOwner {
+        divest(positionId, false);
     }
 
     function distributeFee(address token, uint amount) internal nonReentrant {
         if(amount > 0) {
-            uint toBank = amount.mul(9).div(10);
+            uint toBank = amount.mul(feePercent).div(10000);
             IERC20(token).transfer(address(bank), toBank);
-            // work.settle(msg.sender, token, 0, int128(toBank));
             work.settle(msg.sender, token, int128(toBank));
             IERC20(token).transfer(msg.sender, amount.sub(toBank));
         }

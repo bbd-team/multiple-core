@@ -29,12 +29,13 @@ contract MulWork is Permission {
 	mapping (address => mapping(address => int128)) public profits;
 
 	mapping (address => uint) public baseQuota;
+	mapping (address => int128) public extraQuota; 
 
 	uint public cntOfWorker;
-	uint public basePercent = MAG;
 
 	event AccountCreated(address indexed user, uint tokenId);
 	event SetBaseQuota(address indexed token, uint amount);
+	event SetExtraQuota(address worker, address indexed token, int128 amount);
 	event Settle(address indexed user, address token, int128 profit);
 
 	constructor(IERC721 _gpToken, IMulBank _bank) {
@@ -69,6 +70,13 @@ contract MulWork is Permission {
 		}
 	}
 
+	function setExtraQuota(address worker, address[] memory tokens, int128[] memory amounts) external onlyOwner {
+		for(uint i = 0;i < tokens.length;i++) {
+			extraQuota[tokens[i]] = amounts[i];
+			emit SetExtraQuota(worker, tokens[i], amounts[i]);
+		}
+	}
+
 	function upgrade(address newContract, uint[] memory tokenIds) external onlyOwner {
 		uint cnt = tokenIds.length;
 		for(uint i = 0;i < cnt;i++) {
@@ -83,7 +91,8 @@ contract MulWork is Permission {
 		}
 		
 		int128 profit = profits[user][token];
-		int128 quota = int128(baseQuota[token]) + profit > 0 ? int128(baseQuota[token]) + profit: 0;
+		int128 quota = int128(baseQuota[token]) + extraQuota[token];
+		quota = quota + profit > 0 ? quota + profit: 0;
 		return uint(quota);
 	}
 
