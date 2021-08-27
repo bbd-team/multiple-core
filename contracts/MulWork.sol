@@ -29,7 +29,7 @@ contract MulWork is Permission {
 	mapping (address => mapping(address => int128)) public profits;
 
 	mapping (address => uint) public baseQuota;
-	mapping (address => int128) public extraQuota; 
+	mapping (address => mapping(address => int128)) public extraQuota; 
 
 	uint public cntOfWorker;
 
@@ -72,7 +72,7 @@ contract MulWork is Permission {
 
 	function setExtraQuota(address worker, address[] memory tokens, int128[] memory amounts) external onlyOwner {
 		for(uint i = 0;i < tokens.length;i++) {
-			extraQuota[tokens[i]] = amounts[i];
+			extraQuota[worker][tokens[i]] = amounts[i];
 			emit SetExtraQuota(worker, tokens[i], amounts[i]);
 		}
 	}
@@ -91,7 +91,7 @@ contract MulWork is Permission {
 		}
 		
 		int128 profit = profits[user][token];
-		int128 quota = int128(baseQuota[token]) + extraQuota[token];
+		int128 quota = int128(baseQuota[token]) + extraQuota[user][token];
 		quota = quota + profit > 0 ? quota + profit: 0;
 		return uint(quota);
 	}

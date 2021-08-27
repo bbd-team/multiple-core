@@ -143,8 +143,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/MulWork.sol": {
-      "lastModificationDate": 1629720571289,
-      "contentHash": "2adcdd187c1f9a5fe0680b0120bfd0de",
+      "lastModificationDate": 1630043985526,
+      "contentHash": "b40889fe137bdc10fdcfdc394ba46066",
       "sourceName": "contracts/MulWork.sol",
       "solcConfig": {
         "version": "0.7.6",
@@ -995,7 +995,7 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/MulBank.sol": {
-      "lastModificationDate": 1630040529911,
+      "lastModificationDate": 1630041639366,
       "contentHash": "8e5fecc882547280f675ec2a7619f637",
       "sourceName": "contracts/MulBank.sol",
       "solcConfig": {
