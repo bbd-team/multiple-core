@@ -68,7 +68,8 @@ describe("Invest", function() {
     async function initWork() {
         console.log("deployWork");
         await (await work.addPermission(strategy.address)).wait();
-        await (await work.setBaseQuota([usdc.address, eth.address, weth.address], [toTokenAmount('10000'), toTokenAmount('10000'), toTokenAmount("1")])).wait();
+        await (await work.setExtraQuota(gp1.address, [weth.address], [toTokenAmount("0.05")])).wait();
+        await (await work.setBaseQuota([usdc.address, eth.address, weth.address], [toTokenAmount('10000'), toTokenAmount('10000'), toTokenAmount("0.05")])).wait();
         console.log("complete");
     }
 
@@ -279,12 +280,15 @@ describe("Invest", function() {
         await (await bank.connect(lp1).withdraw(usdc.address, toTokenAmount('5000'))).wait();
         await (await bank.connect(lp2).withdraw(usdc.address, toTokenAmount('5000'))).wait();
 
+        await (await bank.connect(lp1).withdraw(weth.address, toTokenAmount('1'))).wait();
+        await (await bank.connect(lp2).withdraw(weth.address, toTokenAmount('1'))).wait();
+
         console.log(`lp1 balance usdc: ${toMathAmount(await usdc.balanceOf(lp1.address))} 
-        balance eth: ${toMathAmount(await eth.balanceOf(lp1.address))}
+        balance eth: ${toMathAmount(await lp1.getBalance())}
         `)
 
         console.log(`lp2 balance usdc: ${toMathAmount(await usdc.balanceOf(lp2.address))} 
-        balance eth: ${toMathAmount(await eth.balanceOf(lp2.address))}
+        balance eth: ${toMathAmount(await lp1.getBalance())}
         `)
 
 

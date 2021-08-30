@@ -27,9 +27,8 @@ contract MulBank is Permission {
     address public WETH9;
 
     event PoolInitialized(address indexed supplyToken, address shareToken);
-    event CompoundInitialized(address indexed token, address cToken);
-    event Deposit(address indexed user, uint256 amount, uint256 share);
-    event Withdraw(address indexed user, uint256 amount, uint256 share);
+    event Deposit(address indexed user, address indexed token, uint256 amount, uint256 share);
+    event Withdraw(address indexed user, address indexed token, uint256 amount, uint256 share);
 
     receive() external payable {
         require(msg.sender == WETH9, 'Not WETH9');
@@ -95,7 +94,7 @@ contract MulBank is Permission {
             pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         }
 
-        emit Deposit(msg.sender, amount, share);
+        emit Deposit(msg.sender, token, amount, share);
     }
 
     function withdraw(address token, uint256 share) external {
@@ -115,7 +114,7 @@ contract MulBank is Permission {
             pool.supplyToken.safeTransfer(msg.sender, amount);
         }
 
-        emit Withdraw(msg.sender, amount, share);
+        emit Withdraw(msg.sender, token, amount, share);
     }
 
     function borrow(

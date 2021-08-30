@@ -995,8 +995,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/MulBank.sol": {
-      "lastModificationDate": 1630298463277,
-      "contentHash": "31c5369bcda07b48114a4295c847a30d",
+      "lastModificationDate": 1630322022501,
+      "contentHash": "3341d3785cefbc2051d95754ae96e682",
       "sourceName": "contracts/MulBank.sol",
       "solcConfig": {
         "version": "0.7.6",
