@@ -68,7 +68,7 @@ describe("Invest", function() {
     async function initWork() {
         console.log("deployWork");
         await (await work.addPermission(strategy.address)).wait();
-        await (await work.setBaseQuota([usdc.address, eth.address], [toTokenAmount('10000'), toTokenAmount('10000')])).wait();
+        await (await work.setBaseQuota([usdc.address, eth.address, weth.address], [toTokenAmount('10000'), toTokenAmount('10000'), toTokenAmount("1")])).wait();
         console.log("complete");
     }
 
@@ -78,8 +78,9 @@ describe("Invest", function() {
       await (await bank.initPool(usdc.address)).wait();
       await (await bank.initPool(uni.address)).wait();
       await (await bank.initPool(eth.address)).wait();
+      await (await bank.initPool(weth.address)).wait();
 
-      await (await bank.addReamins([usdc.address, uni.address, eth.address], [toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000')]))
+      await (await bank.addRemains([usdc.address, uni.address, eth.address, weth.address], [toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000')]))
       console.log("complete");
     }
 
@@ -134,6 +135,10 @@ describe("Invest", function() {
 
       await (await bank.connect(lp1).deposit(uni.address, toTokenAmount('5000'))).wait();
       await (await bank.connect(lp2).deposit(uni.address, toTokenAmount('5000'))).wait();
+
+      await (await bank.connect(lp1).deposit(weth.address, toTokenAmount('1'), {value: toTokenAmount('1')})).wait();
+      await (await bank.connect(lp2).deposit(weth.address, toTokenAmount('1'), {value: toTokenAmount('1')})).wait();
+
     }
 
     async function swap(from, to, amount) {
@@ -144,8 +149,8 @@ describe("Invest", function() {
               amountIn: amount,
               amountOutMinimum: 0,
         }
-
-        await (await router.exactInput(params, {gasLimit: 8000000})).wait();
+        let value = from.address===weth.address ? amount: 0;
+        await (await router.exactInput(params, {gasLimit: 8000000, value: value})).wait();
         console.log("swap complete");
     }
 
@@ -195,15 +200,15 @@ describe("Invest", function() {
     });
 
     async function addFullLiquidity() {
-      const [t0, t1] = sortedTokens(usdc, eth)
+      const [t0, t1] = sortedTokens(usdc, weth)
       const param = {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
             tickLower: getMinTick(tickSpacing),
             tickUpper: getMaxTick(tickSpacing),
-            amount0Desired: toTokenAmount('10000'),
-            amount1Desired: toTokenAmount('10000'),
+            amount0Desired: toTokenAmount('1'),
+            amount1Desired: toTokenAmount('1'),
             amount0Min: 0,
             amount1Min: 0,
             recipient: develop.address,
@@ -213,7 +218,7 @@ describe("Invest", function() {
         console.log(`developer balance usdc: ${toMathAmount(await usdc.balanceOf(develop.address))} 
         balance eth: ${toMathAmount(await eth.balanceOf(develop.address))}
         `)
-        await (await positionManager.mint(param, {gasLimit: 8000000})).wait();
+        await (await positionManager.mint(param, {gasLimit: 8000000, value:toTokenAmount(1)})).wait();
         console.log(`developer balance usdc: ${toMathAmount(await usdc.balanceOf(develop.address))} 
         balance eth: ${toMathAmount(await eth.balanceOf(develop.address))}
         `)
@@ -227,7 +232,7 @@ describe("Invest", function() {
 
      it("invest", async function () {
         // await 
-        const [t0, t1] = sortedTokens(usdc, eth)
+        const [t0, t1] = sortedTokens(usdc, weth)
         await (await positionManager.createAndInitializePoolIfNecessary(
             t0.address,
             t1.address,
@@ -242,30 +247,46 @@ describe("Invest", function() {
         await (await work.connect(gp1).createAccount(1)).wait();
         await (await work.connect(gp2).createAccount(2)).wait();
 
-        console.log("pool remain 10000u 10000 btc")
         const param = {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
             tickLower: -600,
             tickUpper: 600,
-            amount0Desired: toTokenAmount('1000'),
-            amount1Desired: toTokenAmount('1000'),
+            amount0Desired: toTokenAmount('0.1'),
+            amount1Desired: toTokenAmount('0.1'),
         }
         await (await strategy.connect(gp1).invest(param, {gasLimit: 8000000})).wait();
 
         console.log("simulate swap");
-        await swap(usdc, eth, toTokenAmount("2000"));
-        await swap(eth, usdc, toTokenAmount("1000"));
+        await swap(usdc, weth, toTokenAmount("0.2"));
+        await swap(weth, usdc, toTokenAmount("2000"));
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
-        balance eth: ${toMathAmount(await eth.balanceOf(gp1.address))}
+        balance eth: ${toMathAmount(await gp1.getBalance())}
         `)
 
-        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000})).wait();
+        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000, value:toTokenAmount(1)})).wait();
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
-        balance eth: ${toMathAmount(await eth.balanceOf(gp1.address))}
+        balance eth: ${toMathAmount(await gp1.getBalance())}
         `)
+
+        console.log(`bank balance usdc: ${toMathAmount(await usdc.balanceOf(bank.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(bank.address))}
+        `)
+
+        await (await bank.connect(lp1).withdraw(usdc.address, toTokenAmount('5000'))).wait();
+        await (await bank.connect(lp2).withdraw(usdc.address, toTokenAmount('5000'))).wait();
+
+        console.log(`lp1 balance usdc: ${toMathAmount(await usdc.balanceOf(lp1.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(lp1.address))}
+        `)
+
+        console.log(`lp2 balance usdc: ${toMathAmount(await usdc.balanceOf(lp2.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(lp2.address))}
+        `)
+
+
       });
 })

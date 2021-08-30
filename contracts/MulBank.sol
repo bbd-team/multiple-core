@@ -17,8 +17,6 @@ contract MulBank is Permission {
         ERC20 supplyToken;
         MulERC20 shareToken;
         uint256 totalBorrow;
-        uint256 loss;
-        uint256 totalDeposit;
     }
 
     mapping(address => uint) public remains;
@@ -41,7 +39,7 @@ contract MulBank is Permission {
         WETH9 = _WETH9;
     }
 
-    function addReamins(address[] memory tokens, uint[] memory amounts) external onlyOwner {
+    function addRemains(address[] memory tokens, uint[] memory amounts) external onlyOwner {
         require(tokens.length > 0 && tokens.length == amounts.length, "INVALID PARAMS");
         for(uint i = 0;i < tokens.length;i++) {
             remains[tokens[i]] = remains[tokens[i]].add(amounts[i]);
@@ -66,7 +64,7 @@ contract MulBank is Permission {
         address shareToken = Create2.deploy(0, salt, bytecode);
         MulERC20(shareToken).setDecimal(supplyToken.decimals());
         PoolInfo memory pool =
-            PoolInfo(supplyToken, MulERC20(shareToken), 0, 0, 0);
+            PoolInfo(supplyToken, MulERC20(shareToken), 0);
         poolInfo[address(supplyToken)] = pool;
         emit PoolInitialized(address(supplyToken), shareToken);
         cntOfPool++;
@@ -96,8 +94,6 @@ contract MulBank is Permission {
         } else {
             pool.supplyToken.safeTransferFrom(msg.sender, address(this), amount);
         }
-        
-        pool.totalDeposit = pool.totalDeposit.add(amount);
 
         emit Deposit(msg.sender, amount, share);
     }
@@ -112,7 +108,6 @@ contract MulBank is Permission {
         require(pool.supplyToken.balanceOf(address(this)) >= amount, "NO ENOUGH AMOUNT");
 
         pool.shareToken.burn(msg.sender, share);
-        pool.totalDeposit = pool.totalDeposit.sub(amount);
         if(token == WETH9) {
             IWETH9(WETH9).withdraw(amount);
             msg.sender.transfer(amount);

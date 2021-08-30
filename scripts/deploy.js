@@ -26,7 +26,7 @@ function toTokenAmount(amount, decimals = 18) {
 async function addRemain() {
   MulBank = await hre.ethers.getContractFactory("MulBank");
   let bankContract = await hre.ethers.getContractAt("MulBank", bank);
-  await (await bankContract.addReamins([DAI, UNI, USDC, ETH], 
+  await (await bankContract.addRemains([DAI, UNI, USDC, ETH], 
     [toTokenAmount("10000000"), toTokenAmount("10000000"), toTokenAmount("10000000", 6), toTokenAmount("10000000")])
 ).wait()
     console.log("complete")
@@ -35,7 +35,7 @@ async function addRemain() {
 async function deposit(mulBank) {
   let bankContract = await hre.ethers.getContractAt("MulBank", mulBank.address);
 
-  await bankContract.addReamins([DAI, UNI, USDC, ETH], 
+  await bankContract.addRemains([DAI, UNI, USDC, ETH], 
     [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
 
   let daiContract = await hre.ethers.getContractAt("ERC20", DAI);

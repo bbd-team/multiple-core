@@ -53,6 +53,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     address public WETH9;
     uint176 public _nextId = 0;
     uint public feePercent = 6000;
+    bool private claimed = false;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
@@ -143,12 +144,11 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
     function payFrom(address token, uint amount) internal {
         if(token == WETH9) {
-            require(msg.value == amount, "INVALID ETH VALUE");
-            IWETH9(WETH9).deposit{value: msg.value}();
+            require(msg.value >= amount, "INVALID ETH VALUE");
+            IWETH9(WETH9).deposit{value: amount}();
         } else {
             IERC20(token).transferFrom(msg.sender, address(this), amount);
         }
-
     }
 
     function payTo(address token, uint amount) internal {
@@ -163,7 +163,6 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     function _settle(uint positionId, uint amount0, uint amount1, bool hedge) internal nonReentrant {
         Position storage pos = positions[positionId];
         if(hedge) {
-            
             if(amount0 > pos.debt0) {
                 payTo(pos.token0, amount0.sub(pos.debt0));
                 payFrom(pos.token1, pos.debt1.sub(amount1));
@@ -173,14 +172,15 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
                 payFrom(pos.token0, pos.debt0.sub(amount0));
                 payTo(pos.token1, amount1.sub(pos.debt1));
             }
+
+            if(address(this).balance > 0) {
+                msg.sender.transfer(address(this).balance);
+            }
         }
         
         uint balance0 = IERC20(pos.token0).balanceOf(address(this));
         uint balance1 = IERC20(pos.token1).balanceOf(address(this));
-        
-        // int128 profit0 = balance0 > pos.debt0 ? int128(balance0.sub(pos.debt0)): -int128(pos.debt0.sub(balance0));
-        // int128 profit1 = balance1 > pos.debt1 ? int128(balance1.sub(pos.debt1)): -int128(pos.debt1.sub(balance1));
-        
+               
         work.settle(pos.operator, pos.token0, int128(balance0));
         work.settle(pos.operator, pos.token1, int128(balance1));
 
@@ -246,6 +246,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
     function divest(uint positionId, bool hedge) public payable onlyOperator(positionId)  returns(uint amount0, uint amount1){
         Position storage pos = positions[positionId];
+        claimed = true;
         collect(positionId);
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
         (amount0, amount1) = pool.burn(pos.tick.tickLower, pos.tick.tickUpper, pos.tick.liquidity);
@@ -273,6 +274,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
             tickUpper: pos.tick.tickUpper
         }));
 
+        claimed = true;
         collect(positionId);
 
         pos.tick.liquidity = pos.tick.liquidity + liquidity;
@@ -287,6 +289,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     external onlyOperator(positionId) payable returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
+        claimed = true;
         collect(positionId);
         
         require(tick.liquidity != liquidity || params.tickLower != tick.tickLower || params.tickUpper != tick.tickUpper, "NO CHANGE");
@@ -338,19 +341,21 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
                 )
             );
 
-        (fee0, fee1) = pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
-        if(msg.sender == address(this)) {
+        if(claimed) {
+            (fee0, fee1) = pool.collect(address(this), tick.tickLower, tick.tickUpper, fee0, fee1);
             tick.fee0 = tick.fee0.add(fee0);
             tick.fee1 = tick.fee1.add(fee1);
 
             distributeFee(pos.token0, fee0);
             distributeFee(pos.token1, fee1);
 
+            claimed = false;
+
             tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
             tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+
+            emit Collect(pos.operator, positionId, fee0, fee1, feePercent);
         }
-    
-        emit Collect(pos.operator, positionId, fee0, fee1, feePercent);
     }
 
     function liquidation(uint positionId) external onlyOwner {
