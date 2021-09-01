@@ -176,6 +176,8 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
             if(address(this).balance > 0) {
                 msg.sender.transfer(address(this).balance);
             }
+        } else {
+            require(msg.value == 0, "INVALID ETH VALUE");
         }
         
         uint balance0 = IERC20(pos.token0).balanceOf(address(this));
@@ -367,7 +369,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
             uint toBank = amount.mul(feePercent).div(10000);
             IERC20(token).transfer(address(bank), toBank);
             work.settle(msg.sender, token, int128(toBank));
-            IERC20(token).transfer(msg.sender, amount.sub(toBank));
+            payTo(token, amount.sub(toBank));
         }
     }
 }

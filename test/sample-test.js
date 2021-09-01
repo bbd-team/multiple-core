@@ -267,7 +267,7 @@ describe("Invest", function() {
         balance eth: ${toMathAmount(await gp1.getBalance())}
         `)
 
-        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000, value:toTokenAmount(1)})).wait();
+        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000, value:toTokenAmount(1.5)})).wait();
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
         balance eth: ${toMathAmount(await gp1.getBalance())}
