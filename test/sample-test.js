@@ -267,7 +267,7 @@ describe("Invest", function() {
         balance eth: ${toMathAmount(await gp1.getBalance())}
         `)
 
-        await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000, value:toTokenAmount(1.5)})).wait();
+        // await (await strategy.connect(gp1).divest(0, true, {gasLimit: 8000000, value:toTokenAmount(1.5)})).wait();
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
         balance eth: ${toMathAmount(await gp1.getBalance())}
@@ -277,11 +277,11 @@ describe("Invest", function() {
         balance eth: ${toMathAmount(await eth.balanceOf(bank.address))}
         `)
 
-        await (await bank.connect(lp1).withdraw(usdc.address, toTokenAmount('5000'))).wait();
-        await (await bank.connect(lp2).withdraw(usdc.address, toTokenAmount('5000'))).wait();
+        // await (await bank.connect(lp1).withdraw(usdc.address, toTokenAmount('5000'))).wait();
+        // await (await bank.connect(lp2).withdraw(usdc.address, toTokenAmount('5000'))).wait();
 
-        await (await bank.connect(lp1).withdraw(weth.address, toTokenAmount('1'))).wait();
-        await (await bank.connect(lp2).withdraw(weth.address, toTokenAmount('1'))).wait();
+        // await (await bank.connect(lp1).withdraw(weth.address, toTokenAmount('1'))).wait();
+        // await (await bank.connect(lp2).withdraw(weth.address, toTokenAmount('1'))).wait();
 
         console.log(`lp1 balance usdc: ${toMathAmount(await usdc.balanceOf(lp1.address))} 
         balance eth: ${toMathAmount(await lp1.getBalance())}
@@ -291,6 +291,19 @@ describe("Invest", function() {
         balance eth: ${toMathAmount(await lp1.getBalance())}
         `)
 
+        let xx = await strategy.connect(gp1).callStatic.collect(0);
+        console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));
 
+
+        let swit = {
+            tickLower: -600,
+            tickUpper: 600,
+            amount0Desired: toTokenAmount('0.1'),
+            amount1Desired: toTokenAmount('0.1'),
+        }
+        await (await strategy.connect(gp1).switching(0, swit, false, {gasLimit: 8000000})).wait()
+        // console.log(aa);
+        xx = await strategy.connect(gp1).callStatic.collect(0);
+        console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));
       });
 })
