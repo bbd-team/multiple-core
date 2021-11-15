@@ -17,8 +17,6 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 
 	IERC721 public GPToken;
 
-	using EnumerableSet for EnumerableSet.AddressSet;
-
 	struct Info {
 		int128 unbalance0;
 		int128 unbalance1;

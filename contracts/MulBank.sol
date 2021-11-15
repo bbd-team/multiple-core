@@ -45,7 +45,7 @@ contract MulBank is Permission {
         hasInit[address(supplyToken)] = true;
 
         string memory symbol =
-            string(abi.encodePacked("mul", supplyToken.symbol()));
+            string(abi.encodePacked("MUL", supplyToken.symbol()));
         string memory name =
             string(abi.encodePacked("MUL", supplyToken.symbol()));
 

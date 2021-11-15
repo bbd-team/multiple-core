@@ -35,8 +35,8 @@ async function addRemain() {
 async function deposit(mulBank) {
   let bankContract = await hre.ethers.getContractAt("MulBank", mulBank.address);
 
-  await bankContract.addRemains([DAI, UNI, USDC, ETH], 
-    [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
+  // await bankContract.addRemains([DAI, UNI, USDC, ETH], 
+  //   [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
 
   let daiContract = await hre.ethers.getContractAt("ERC20", DAI);
   let uniContract = await hre.ethers.getContractAt("ERC20", UNI);
@@ -65,14 +65,14 @@ async function main() {
   // await hre.run('compile');
   Pop721 = await hre.ethers.getContractFactory("Pop721");
   MulBank = await hre.ethers.getContractFactory("MulBank");
-  MulWork = await hre.ethers.getContractFactory("MulWork");
+  MulWork = await hre.ethers.getContractFactory("UniswapV3WorkCenter");
   ERC20 = await hre.ethers.getContractFactory("ERC20");
   const WETH = await hre.ethers.getContractFactory("WETH9")
 
   const WETH9 = await WETH.deploy();
   const pop721 = await Pop721.deploy("Multiple GP", "GP", "https://www.multiple.fi");
   const mulBank = await MulBank.deploy(WETH9.address);
-  const mulWork = await MulWork.deploy(pop721.address, mulBank.address);
+  const mulWork = await MulWork.deploy(pop721.address);
 
   console.log("deploy");
   await (await mulBank.initPool(DAI)).wait();
@@ -86,7 +86,7 @@ async function main() {
   await (await mulBank.addPermission(strategy.address)).wait();
   await (await mulWork.addPermission(strategy.address)).wait();
 
-  await (await mulWork.setBaseQuota([DAI, UNI, USDC, ETH], [toTokenAmount("100000"), toTokenAmount("5000"), toTokenAmount("100000", 6), toTokenAmount("100")])).wait();
+  // await (await mulWork.setQuotas([DAI, UNI, USDC, ETH], [toTokenAmount("100000"), toTokenAmount("5000"), toTokenAmount("100000", 6), toTokenAmount("100")])).wait();
 
   console.log('let mulBank: any = "' + mulBank.address + '"');
   console.log('let mulWork: any = "' + mulWork.address + '"');
