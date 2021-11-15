@@ -15,4 +15,6 @@ interface IMulBank {
 	function borrow(address token, uint256 amount, address to) external;
 
 	function WETH9() external view returns(address);
+
+	function isClosePeriod() external view returns(bool);
 }

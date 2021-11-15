@@ -42,6 +42,11 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         Tick tick;
     }
 
+    /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
+    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
+    /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
+    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+
     IUniswapV3Factory public factory;
 
     IMulBank public bank;
@@ -57,16 +62,16 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     event Divest(address indexed user, uint positionId, uint amount0, uint amount1);
     event Add(address indexed user, uint positionId, uint amount0, uint amount1, uint128 liquidity);
     event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity);
+    event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
+    event Swap(address indexed user, address pool, int256 amount0, int256 amount1);
 
-    constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank, address _rewardAddr) {
+    constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank) {
         require(address(_factory) != address(0), "INVALID_ADDRESS");
         require(address(_work) != address(0), "INVALID_ADDRESS");
         require(address(_bank) != address(0), "INVALID_ADDRESS");
-        require(_rewardAddr != address(0), "INVALID_ADDRESS");
         factory = _factory;
         work = _work;
         bank = _bank;
-        rewardAddr = _rewardAddr;
     }
 
     struct MintCallbackData {
@@ -99,7 +104,8 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         address token1;
         uint24 fee;
         int256 amountSpecified;
-        int256 amountRequire;
+        uint amountOutMin;
+        uint amountInMax;
         bool zeroOne;
     }
     
@@ -114,16 +120,23 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         require(msg.sender == tx.origin, 'not eoa');
         _;
       }
+
+    modifier enable() {
+        require(bank.isClosePeriod(), 'NOT CLOSE PERIOD NOW');
+        _;
+    }
       
     modifier onlyOperator(uint positionId) {
         Position memory pos = positions[positionId];
-        require(msg.sender == pos.operator && !pos.close && pos.tick.liquidity > 0, "FORBIDDEN");
+        require(msg.sender == pos.operator, "FORBIDDEN");
+        require(!pos.close && pos.tick.liquidity > 0, "ALREADY CLOSE");
         _;
     }
 
     function toInt128(int256 y) internal pure returns (int128 z) {
         require((z = int128(y)) == y);
     }
+
 
     function uniswapV3MintCallback(
         uint256 amount0Owed,
@@ -161,7 +174,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         bank.borrow(token, amount, to);
     } 
 
-    function _settle(uint positionId, address poolAddress, uint amount0, uint amount1) internal nonReentrant {
+    function _settle(uint positionId, address poolAddress) internal nonReentrant {
         Position storage pos = positions[positionId];
         
         uint balance0 = IERC20(pos.token0).balanceOf(address(this));
@@ -197,7 +210,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         );
     }
     
-    function invest(MintParams calldata params) external returns (uint amount0, uint amount1, uint128 liquidity) {
+    function invest(MintParams calldata params) external enable() returns (uint amount0, uint amount1, uint128 liquidity) {
         IUniswapV3Pool pool;
         (pool, amount0, amount1, liquidity) = _mint(params);
         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
@@ -234,7 +247,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         (amount0, amount1) = pool.burn(pos.tick.tickLower, pos.tick.tickUpper, pos.tick.liquidity);
         
         pool.collect(address(this), pos.tick.tickLower, pos.tick.tickUpper, uint128(amount0), uint128(amount1));
-        _settle(positionId, address(pool), amount0, amount1);
+        _settle(positionId, address(pool));
         pos.tick.liquidity = 0;
         pos.exit0 = amount0;
         pos.exit1 = amount1;
@@ -243,7 +256,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Divest(msg.sender, positionId, amount0, amount1);
     }
 
-    function add(uint positionId, uint amount0Desired, uint amount1Desired) external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
+    function add(uint positionId, uint amount0Desired, uint amount1Desired) external enable() onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity) {
         Position storage pos = positions[positionId]; 
         IUniswapV3Pool pool;
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
@@ -267,7 +280,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     }
     
     function switching(uint positionId, SwitchParams memory params)
-    external onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
+    external enable() onlyOperator(positionId) returns(uint amount0, uint amount1, uint128 liquidity, uint exit0, uint exit1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         collect(positionId);
@@ -277,7 +290,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
         (exit0, exit1) = pool.burn(tick.tickLower, tick.tickUpper, tick.liquidity);
         pool.collect(address(this), tick.tickLower, tick.tickUpper, uint128(exit0), uint128(exit1));
-        _settle(positionId, address(pool), exit0, exit1);
+        _settle(positionId, address(pool));
 
         (pool, amount0, amount1, liquidity) = _mint(MintParams({
             token0: pos.token0,
@@ -301,7 +314,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Switching(msg.sender, positionId, exit0, exit1, amount0, amount1, liquidity);
     }
 
-    function collect(uint positionId) public nonReentrant onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
+    function collect(uint positionId) public nonReentrant enable() onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
@@ -330,16 +343,30 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
 
         work.settle(msg.sender, address(pool), pos.token0, pos.token1, int128(fee0), int128(fee1));
+        emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
-    function swap(SwapParams memory params) external returns (int256 amount0, int256 amount1) {
+    function swap(SwapParams memory params) external enable() returns (int256 amount0, int256 amount1) {
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
         (int256 quota0, int256 quota1) = work.getSwapQuota(msg.sender, address(pool));
 
-        (amount0, amount1) = pool.swap(address(this), params.zeroOne, params.amountSpecified, 0, new bytes(0));
-        // if(zeroone) {
-        //     if(params.amountSpecified > 0)
-        // }
+        (amount0, amount1) = pool.swap(address(this), 
+            params.zeroOne, 
+            params.amountSpecified, 
+            params.zeroOne ? MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1, 
+            abi.encode(SwapCallbackData(
+                {isGP: true, token0: params.token0, token1: params.token1, fee: params.fee, payer: msg.sender})));
+        require((params.zeroOne && quota0 >= amount0) || (!params.zeroOne && quota1 >= amount1), "INVALID AMOUNT");
+        bool exactInput = params.amountSpecified > 0 ;
+        if(exactInput) {
+            uint amountOut = amount0 > 0 ? uint(-amount1): uint(-amount0);
+            require(amountOut >= params.amountOutMin, "SLIP");
+        } else {
+            uint amountIn = amount0 > 0 ? uint(amount0): uint(amount1);
+            require(amountIn <= params.amountInMax, "SLIP");
+        }
+
+        emit Swap(msg.sender, address(pool), amount0, amount1);
     }
 
     // function distributeFee(address token, uint amount) internal nonReentrant {

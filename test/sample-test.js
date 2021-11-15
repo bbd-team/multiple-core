@@ -64,12 +64,15 @@ describe("Invest", function() {
     let ERC20;
     let bank, work, factory, positionManager, positionDescripter, router, weth;
     let deployer, lp1, lp2, gp1, gp2;
+    let poolAddress;
 
     async function initWork() {
         console.log("deployWork");
         await (await work.addPermission(strategy.address)).wait();
-        await (await work.setExtraQuota(gp1.address, [weth.address], [toTokenAmount("0.05")])).wait();
-        await (await work.setBaseQuota([usdc.address, eth.address, weth.address], [toTokenAmount('10000'), toTokenAmount('10000'), toTokenAmount("0.05")])).wait();
+        await (await work.setQuota(gp1.address, [weth.address, usdc.address, uni.address, eth.address],
+         [toTokenAmount("10000"), toTokenAmount("300000"), toTokenAmount("10000"), toTokenAmount("10000")])).wait();
+        await (await work.setQuota(gp2.address, [weth.address, usdc.address, uni.address, eth.address],
+         [toTokenAmount("10000"), toTokenAmount("300000"), toTokenAmount("10000"), toTokenAmount("10000")])).wait();
         console.log("complete");
     }
 
@@ -81,7 +84,6 @@ describe("Invest", function() {
       await (await bank.initPool(eth.address)).wait();
       await (await bank.initPool(weth.address)).wait();
 
-      await (await bank.addRemains([usdc.address, uni.address, eth.address, weth.address], [toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000'), toTokenAmount('1000000')]))
       console.log("complete");
     }
 
@@ -137,8 +139,8 @@ describe("Invest", function() {
       await (await bank.connect(lp1).deposit(uni.address, toTokenAmount('5000'))).wait();
       await (await bank.connect(lp2).deposit(uni.address, toTokenAmount('5000'))).wait();
 
-      await (await bank.connect(lp1).deposit(weth.address, toTokenAmount('1'), {value: toTokenAmount('1')})).wait();
-      await (await bank.connect(lp2).deposit(weth.address, toTokenAmount('1'), {value: toTokenAmount('1')})).wait();
+      await (await bank.connect(lp1).deposit(weth.address, toTokenAmount('1000'), {value: toTokenAmount('1000')})).wait();
+      await (await bank.connect(lp2).deposit(weth.address, toTokenAmount('1000'), {value: toTokenAmount('1000')})).wait();
 
     }
 
@@ -166,8 +168,8 @@ describe("Invest", function() {
         uni = await ERC20.deploy("UNI", "UNI Coin", 18, 100000000);
         mul = await ERC20.deploy("MUL", "MUL Coin", 18, 100000000);
 
-        ERC721 = await ethers.getContractFactory("Pop721");
-        gp = await ERC721.deploy("GP Worker", "GP", "");
+        Pop721 = await ethers.getContractFactory("Pop721");
+        gp = await Pop721.deploy("GP Worker", "GP", "");
         await gp.mint(gp1.address, 1);
         await gp.mint(gp2.address, 2);
 
@@ -189,8 +191,8 @@ describe("Invest", function() {
         const Bank = await ethers.getContractFactory("MulBank");
         bank = await Bank.deploy(weth.address);
 
-        const Work = await ethers.getContractFactory("MulWork");
-        work = await Work.deploy(gp.address, bank.address);
+        const Work = await ethers.getContractFactory("UniswapV3WorkCenter");
+        work = await Work.deploy(gp.address);
 
         const Strategy = await ethers.getContractFactory("UniswapV3Strategy");
         strategy     = await Strategy.deploy(factory.address, work.address, bank.address);
@@ -201,15 +203,15 @@ describe("Invest", function() {
     });
 
     async function addFullLiquidity() {
-      const [t0, t1] = sortedTokens(usdc, weth)
+      const [t0, t1] = sortedTokens(usdc, eth)
       const param = {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
             tickLower: getMinTick(tickSpacing),
             tickUpper: getMaxTick(tickSpacing),
-            amount0Desired: toTokenAmount('1'),
-            amount1Desired: toTokenAmount('1'),
+            amount0Desired: toTokenAmount('80000'),
+            amount1Desired: toTokenAmount('80000'),
             amount0Min: 0,
             amount1Min: 0,
             recipient: develop.address,
@@ -225,6 +227,19 @@ describe("Invest", function() {
         `)
     }
 
+    async function createPool() {
+      const [t0, t1] = sortedTokens(usdc, eth)
+      await (await positionManager.createAndInitializePoolIfNecessary(
+            t0.address,
+            t1.address,
+            FeeAmount.MEDIUM,
+            encodePriceSqrt(1, 1)
+        )).wait();
+
+      poolAddress = await factory.getPool(usdc.address, eth.address, FeeAmount.MEDIUM);
+      await work.switchPool([poolAddress], [true]);
+    }
+
 
      it("deposit bank", async function () {
         // await 
@@ -233,35 +248,46 @@ describe("Invest", function() {
 
      it("invest", async function () {
         // await 
-        const [t0, t1] = sortedTokens(usdc, weth)
-        await (await positionManager.createAndInitializePoolIfNecessary(
-            t0.address,
-            t1.address,
-            FeeAmount.MEDIUM,
-            encodePriceSqrt(1, 1)
-        )).wait();
+        const [t0, t1] = sortedTokens(usdc, eth)
+        console.log("createPool");
+        await createPool();
 
         console.log("add full liquidity");
         await addFullLiquidity();
 
+        
+
+
         console.log("create an account");
-        await (await work.connect(gp1).createAccount(1)).wait();
-        await (await work.connect(gp2).createAccount(2)).wait();
+        // await (await work.connect(gp1).createAccount(1)).wait();
+        // await (await work.connect(gp2).createAccount(2)).wait();
+
+        await (await gp.connect(gp1)["safeTransferFrom(address,address,uint256)"](gp1.address, work.address, 1)).wait();
+        await (await gp.connect(gp2)["safeTransferFrom(address,address,uint256)"](gp2.address, work.address, 2)).wait();
+
+
+        let result = await work.getRemainQuota(gp1.address, eth.address);
+        let result2 = await work.getRemainQuota(gp1.address, usdc.address);
+        let worker1 = await work.workers(gp1.address);
+        let worker2 = await work.workers(gp.address);
+        console.log(toMathAmount(result), toMathAmount(result2), worker1, worker2);
 
         const param = {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
-            tickLower: -600,
-            tickUpper: 600,
-            amount0Desired: toTokenAmount('0.1'),
-            amount1Desired: toTokenAmount('0.1'),
+            tickLower: -300,
+            tickUpper: 300,
+            amount0Desired: toTokenAmount('1000'),
+            amount1Desired: toTokenAmount('1000'),
         }
         await (await strategy.connect(gp1).invest(param, {gasLimit: 8000000})).wait();
 
+
         console.log("simulate swap");
-        await swap(usdc, weth, toTokenAmount("0.2"));
-        await swap(weth, usdc, toTokenAmount("2000"));
+        await swap(eth, usdc, toTokenAmount("300"));
+        await swap(usdc, eth, toTokenAmount("2000"));
+        await swap(eth, usdc, toTokenAmount("1700"));
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
         balance eth: ${toMathAmount(await gp1.getBalance())}
@@ -294,14 +320,33 @@ describe("Invest", function() {
         let xx = await strategy.connect(gp1).callStatic.collect(0);
         console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));
 
+        // await (await strategy.connect(gp1).switching(0, swit, {gasLimit: 8000000})).wait()
 
-        let swit = {
-            tickLower: -600,
-            tickUpper: 600,
-            amount0Desired: toTokenAmount('0.1'),
-            amount1Desired: toTokenAmount('0.1'),
-        }
-        await (await strategy.connect(gp1).switching(0, swit, false, {gasLimit: 8000000})).wait()
+        // let swit = {
+        //     tickLower: -600,
+        //     tickUpper: 600,
+        //     amount0Desired: toTokenAmount('0.1'),
+        //     amount1Desired: toTokenAmount('0.1'),
+        // }
+
+        await (await strategy.connect(gp1).divest(0, {gasLimit: 8000000})).wait()
+        let swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
+        console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
+
+        let swapEntity = {
+          token0: t0.address,
+          token1: t1.address,
+          fee: FeeAmount.MEDIUM,
+          amountSpecified: toTokenAmount(10),
+          amountOutMin: 0,
+          amountInMax: 0,
+          zeroOne: false
+      }
+
+      await (await strategy.connect(gp1).swap(swapEntity)).wait();
+
+      swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
+        console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
         // console.log(aa);
         xx = await strategy.connect(gp1).callStatic.collect(0);
         console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));

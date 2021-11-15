@@ -69,6 +69,10 @@ contract MulBank is Permission {
         return pool.totalBorrow.add(ERC20(pool.supplyToken).balanceOf(address(this)));
     }
 
+    function isClosePeriod() public view returns(bool) {
+        return period == Period.Close;
+    }
+
     function deposit(address token, uint256 amount) external payable {
         require(period == Period.Close, "CANNOT DEPOSIT NOW");
         require(hasInit[address(token)], "NOT SUPPORT NOW");
