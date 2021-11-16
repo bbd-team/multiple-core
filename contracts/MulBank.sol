@@ -22,6 +22,7 @@ contract MulBank is Permission {
     enum Period { Close, Settle, Withdraw } 
     Period public period = Period.Close;
 
+    mapping(address => uint) public remains;
     mapping(address => bool) public hasInit;
     mapping(address => PoolInfo) public poolInfo;
 
@@ -38,6 +39,13 @@ contract MulBank is Permission {
 
     constructor(address _WETH9) {
         WETH9 = _WETH9;
+    }
+
+    function addRemains(address[] memory tokens, uint[] memory amounts) external onlyOwner {
+        require(tokens.length > 0 && tokens.length == amounts.length, "INVALID PARAMS");
+        for(uint i = 0;i < tokens.length;i++) {
+            remains[tokens[i]] = remains[tokens[i]].add(amounts[i]);
+        }
     }
 
     function initPool(ERC20 supplyToken) external onlyOwner {
@@ -79,6 +87,9 @@ contract MulBank is Permission {
         require(amount > 0, "INVALID DEPOSIT AMOUNT");
 
         PoolInfo storage pool = poolInfo[token];
+
+        require(amount <= remains[token], "OVERLIMIT");
+        remains[token] = remains[token].sub(amount);
         
         uint totalShare = getTotalShare(token);
         uint share = totalShare == 0 ? amount: amount.mul(pool.shareToken.totalSupply()).div(totalShare);

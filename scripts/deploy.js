@@ -11,6 +11,7 @@ const USDC = "0xe6a4bF81116272205482d142760807C35A5F4909";
 const ETH = "0xFA027A5D2298fc03fc2842F4877aa6A039b0109d";
 
 const bank = "0x12435D6366c3DC367f8E3A0B9fc9E1A603ECFDc1"
+const gpList = ["0xA768267D5b04f0454272664F4166F68CFc447346", "0xc03C12101AE20B8e763526d6841Ece893248a069"]
 
 let BN = require("bignumber.js");
 
@@ -18,6 +19,11 @@ let Pop721;
 let MulBank;
 let MulWork;
 let ERC20;
+
+
+const poolList = ["0xAe849F66b04Bc9b6559397aBa546f1686a10Beae",
+ "0x41b67eea0bea986c5809cc09dc347293065e599b", "0x60578b0B997ac15359375A6D38fa0fAcd29EfC36",
+  "0xa9c8D8F45eB2E1C72a1655734c0FF338772546F5", "0x40FeFF00797305083F33b20154b9d7dd50F120e9"]
 
 function toTokenAmount(amount, decimals = 18) {
     return new BN(amount).multipliedBy(new BN("10").pow(decimals)).toFixed()
@@ -35,8 +41,8 @@ async function addRemain() {
 async function deposit(mulBank) {
   let bankContract = await hre.ethers.getContractAt("MulBank", mulBank.address);
 
-  // await bankContract.addRemains([DAI, UNI, USDC, ETH], 
-  //   [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
+  await bankContract.addRemains([DAI, UNI, USDC, ETH], 
+    [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
 
   let daiContract = await hre.ethers.getContractAt("ERC20", DAI);
   let uniContract = await hre.ethers.getContractAt("ERC20", UNI);
@@ -86,10 +92,18 @@ async function main() {
   await (await mulBank.addPermission(strategy.address)).wait();
   await (await mulWork.addPermission(strategy.address)).wait();
 
+  await mulWork.switchPool(poolList, [true,true,true,true,true]);
+
+  for(let gp of gpList) {
+    let tokenId = Math.floor(Math.random() * 1000000);
+    await pop721.mint(gp, tokenId);
+  }
+  
+
   // await (await mulWork.setQuotas([DAI, UNI, USDC, ETH], [toTokenAmount("100000"), toTokenAmount("5000"), toTokenAmount("100000", 6), toTokenAmount("100")])).wait();
 
   console.log('let mulBank: any = "' + mulBank.address + '"');
-  console.log('let mulWork: any = "' + mulWork.address + '"');
+  console.log('let UniswapV3WorkCenter: any = "' + mulWork.address + '"');
   console.log('let strategy: any = "' + strategy.address + '"');
   console.log('let gp: any = "' + pop721.address + '"');
 
