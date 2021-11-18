@@ -5,13 +5,13 @@
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 const uniFactory = "0xE5B1C39b307A4338632D5D36E686013Ea2c63965";
-const DAI = "0xbEd2BB278b4BBB20450F4E265bd5F250C1E6428c";
-const UNI = "0xe034f90CDa2a219Db2D760Dff42c7085763C7424";
-const USDC = "0xe6a4bF81116272205482d142760807C35A5F4909";
-const ETH = "0xFA027A5D2298fc03fc2842F4877aa6A039b0109d";
+const DAI = "0x17B63a4DDFbA78703A33756D8b93a91D7Bc6a13d";
+const UNI = "0x7bfeAf9EE141d06aDc9c85DeB8d3b72117C316CE";
+const USDC = "0xb16825b4cD5034Dc0A4fC00e11A4653B07e6C668";
+const WETH9 = "0xEAd038CEC675382A1f9e281B2FBdDB970C3f1105";
 
 const bank = "0x12435D6366c3DC367f8E3A0B9fc9E1A603ECFDc1"
-const gpList = ["0xA768267D5b04f0454272664F4166F68CFc447346", "0xc03C12101AE20B8e763526d6841Ece893248a069"]
+const gpList = ["0xA768267D5b04f0454272664F4166F68CFc447346", "0xfdA074b94B1e6Db7D4BEB45058EC99b262e813A5", "0xc03C12101AE20B8e763526d6841Ece893248a069"]
 
 let BN = require("bignumber.js");
 
@@ -19,6 +19,7 @@ let Pop721;
 let MulBank;
 let MulWork;
 let ERC20;
+let owner = "0x9F93bF49F2239F414cbAd0e4375c1e0E7AB833a2";
 
 
 const poolList = ["0xAe849F66b04Bc9b6559397aBa546f1686a10Beae",
@@ -41,25 +42,25 @@ async function addRemain() {
 async function deposit(mulBank) {
   let bankContract = await hre.ethers.getContractAt("MulBank", mulBank.address);
 
-  await bankContract.addRemains([DAI, UNI, USDC, ETH], 
+  await bankContract.addRemains([DAI, UNI, USDC, WETH9], 
     [toTokenAmount("20000000"), toTokenAmount("20000000"), toTokenAmount("20000000", 6), toTokenAmount("20000000")])
 
   let daiContract = await hre.ethers.getContractAt("ERC20", DAI);
   let uniContract = await hre.ethers.getContractAt("ERC20", UNI);
   let usdcContract = await hre.ethers.getContractAt("ERC20", USDC);
-  let ethContract = await hre.ethers.getContractAt("ERC20", ETH);
+  // let ethContract = await hre.ethers.getContractAt("ERC20", WETH9);
 
   console.log('approve');
   await (await daiContract.approve(mulBank.address, toTokenAmount("10000000"))).wait();
   await (await uniContract.approve(mulBank.address, toTokenAmount("10000000"))).wait();
   await (await usdcContract.approve(mulBank.address, toTokenAmount("10000000", 6))).wait();
-  await (await ethContract.approve(mulBank.address, toTokenAmount("10000000"))).wait();
+  // await (await ethContract.approve(mulBank.address, toTokenAmount("10000000"))).wait();
 
   console.log('deposit')
   await (await bankContract.deposit(DAI, toTokenAmount("10000000"))).wait();
   await (await bankContract.deposit(UNI, toTokenAmount("10000000"))).wait();
   await (await bankContract.deposit(USDC, toTokenAmount("10000000", 6))).wait();
-  await (await bankContract.deposit(ETH, toTokenAmount("10000000"))).wait();
+  await (await bankContract.deposit(WETH9, toTokenAmount("10000000"), {value: toTokenAmount(10000000)})).wait();
 }
 
 async function main() {
@@ -73,21 +74,21 @@ async function main() {
   MulBank = await hre.ethers.getContractFactory("MulBank");
   MulWork = await hre.ethers.getContractFactory("UniswapV3WorkCenter");
   ERC20 = await hre.ethers.getContractFactory("ERC20");
-  const WETH = await hre.ethers.getContractFactory("WETH9")
+  // const WETH = await hre.ethers.getContractFactory("WETH9")
 
-  const WETH9 = await WETH.deploy();
+  // WETH9 = await WETH.deploy();
   const pop721 = await Pop721.deploy("Multiple GP", "GP", "https://www.multiple.fi");
-  const mulBank = await MulBank.deploy(WETH9.address);
+  const mulBank = await MulBank.deploy(WETH9);
   const mulWork = await MulWork.deploy(pop721.address);
 
   console.log("deploy");
   await (await mulBank.initPool(DAI)).wait();
   await (await mulBank.initPool(UNI)).wait();
   await (await mulBank.initPool(USDC)).wait();
-  await (await mulBank.initPool(ETH)).wait();
+  await (await mulBank.initPool(WETH9)).wait();
 
   const Strategy = await hre.ethers.getContractFactory("UniswapV3Strategy");
-  const strategy = await Strategy.deploy(uniFactory, mulWork.address, mulBank.address);
+  const strategy = await Strategy.deploy(uniFactory, mulWork.address, mulBank.address, owner, owner);
 
   await (await mulBank.addPermission(strategy.address)).wait();
   await (await mulWork.addPermission(strategy.address)).wait();
@@ -108,6 +109,27 @@ async function main() {
   console.log('let gp: any = "' + pop721.address + '"');
 
   await deposit(mulBank);
+  await addQuota(mulWork);
+}
+
+async function addQuota(work) {
+  let workContract = await hre.ethers.getContractAt("UniswapV3WorkCenter", work.address);
+
+  for(let gp of gpList) {
+    await workContract.setQuota(gp, [DAI, UNI, USDC, WETH9], 
+    [toTokenAmount("10000000"), toTokenAmount("10000000"), toTokenAmount("10000000", 6), toTokenAmount("10000000")]);
+
+    for(let token of [DAI, UNI, USDC, WETH9]) {
+      let tokenContract = await hre.ethers.getContractAt("Token", token);
+      let decimal = await tokenContract.decimals();
+      await tokenContract.transfer(gp, toTokenAmount("100000", decimal));
+      console.log("transfer", gp, token);
+    }
+    
+  }
+   console.log("complete");
+
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -119,4 +141,4 @@ main()
     process.exit(1);
   });
 
-// addRemain();
+// addQuota().then();

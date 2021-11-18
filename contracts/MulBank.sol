@@ -141,6 +141,16 @@ contract MulBank is Permission {
         pool.totalBorrow = pool.totalBorrow.add(amount);
     }
 
+    function payCommision(address token, uint256 amount, address to) external onlyPermission {
+        PoolInfo storage pool = poolInfo[token];
+
+        require(
+            pool.supplyToken.balanceOf(address(this)) >= amount,
+            "INVALID BORROW AMOUNT"
+        );
+        pool.supplyToken.safeTransfer(to, amount);
+    }
+
     function notifyRepay(
         address token,
         uint256 amount

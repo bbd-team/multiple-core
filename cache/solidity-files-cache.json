@@ -291,8 +291,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/interfaces/IMulBank.sol": {
-      "lastModificationDate": 1636819877460,
-      "contentHash": "c3a92b379e8de8e132591dd51700aa65",
+      "lastModificationDate": 1637201310439,
+      "contentHash": "fa62c63ef3753fdaa8349c5c827d3214",
       "sourceName": "contracts/interfaces/IMulBank.sol",
       "solcConfig": {
         "version": "0.7.6",
@@ -427,8 +427,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/UniswapV3Strategy.sol": {
-      "lastModificationDate": 1636929131761,
-      "contentHash": "d87171733416cb51401f5b605f9b662d",
+      "lastModificationDate": 1637207224139,
+      "contentHash": "4e22a60ae29862d111d04999c79e039c",
       "sourceName": "contracts/UniswapV3Strategy.sol",
       "solcConfig": {
         "version": "0.7.6",
@@ -462,7 +462,7 @@
         "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol",
         "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol",
         "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol",
-        "./interfaces/IMulWork.sol",
+        "./interfaces/IUniswapV3WorkCenter.sol",
         "./interfaces/IMulBank.sol"
       ],
       "versionPragmas": [
@@ -684,40 +684,6 @@
       ],
       "artifacts": [
         "IUniswapV3Factory"
-      ]
-    },
-    "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/interfaces/IMulWork.sol": {
-      "lastModificationDate": 1636571305937,
-      "contentHash": "0dd72c212e92b87c2916524a5cbb147d",
-      "sourceName": "contracts/interfaces/IMulWork.sol",
-      "solcConfig": {
-        "version": "0.7.6",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.7.0"
-      ],
-      "artifacts": [
-        "IMulWork"
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@uniswap/v3-core/contracts/libraries/FullMath.sol": {
@@ -993,8 +959,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/MulBank.sol": {
-      "lastModificationDate": 1637028526381,
-      "contentHash": "a837c347cb59f923778bc670eac97f29",
+      "lastModificationDate": 1637207146773,
+      "contentHash": "912944f13f11cb05777dda4a7811f599",
       "sourceName": "contracts/MulBank.sol",
       "solcConfig": {
         "version": "0.7.6",
@@ -1831,8 +1797,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/UniswapV3WorkCenter.sol": {
-      "lastModificationDate": 1636940169060,
-      "contentHash": "2ca65f1d08cb73164206a235591a53a4",
+      "lastModificationDate": 1637122410997,
+      "contentHash": "26be5187bd8ddbc70578be5f5ee0c595",
       "sourceName": "contracts/UniswapV3WorkCenter.sol",
       "solcConfig": {
         "version": "0.7.6",
@@ -1869,6 +1835,40 @@
       ],
       "artifacts": [
         "UniswapV3WorkCenter"
+      ]
+    },
+    "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/interfaces/IUniswapV3WorkCenter.sol": {
+      "lastModificationDate": 1637202591139,
+      "contentHash": "bde62b1604be9361eaa173af88be3513",
+      "sourceName": "contracts/interfaces/IUniswapV3WorkCenter.sol",
+      "solcConfig": {
+        "version": "0.7.6",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.7.0"
+      ],
+      "artifacts": [
+        "IUniswapV3WorkCenter"
       ]
     }
   }

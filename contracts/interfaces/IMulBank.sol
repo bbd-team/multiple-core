@@ -17,4 +17,6 @@ interface IMulBank {
 	function WETH9() external view returns(address);
 
 	function isClosePeriod() external view returns(bool);
+
+	function payCommision(address token, uint256 amount, address to) external;
 }

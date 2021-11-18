@@ -14,7 +14,7 @@ import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
-import "./interfaces/IMulWork.sol";
+import "./interfaces/IUniswapV3WorkCenter.sol";
 import "./interfaces/IMulBank.sol";
 
 contract UniswapV3Strategy is Ownable, ReentrancyGuard {
@@ -50,9 +50,11 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     IUniswapV3Factory public factory;
 
     IMulBank public bank;
-    IMulWork public work;
+    IUniswapV3WorkCenter public work;
     uint176 public _nextId = 0;
-    address public rewardAddr;
+    uint public devPercent = 1000;
+    address public devAddr;
+    address public manageAddr;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
@@ -64,14 +66,17 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity);
     event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
     event Swap(address indexed user, address pool, int256 amount0, int256 amount1);
+    event ClaimCommision(address indexed user, address[] tokens, uint[] commision, uint devPercent, uint gpPercent);
 
-    constructor(IUniswapV3Factory _factory, IMulWork _work, IMulBank _bank) {
+    constructor(IUniswapV3Factory _factory, IUniswapV3WorkCenter _work, IMulBank _bank, address _devAddr, address _manageAddr) {
         require(address(_factory) != address(0), "INVALID_ADDRESS");
         require(address(_work) != address(0), "INVALID_ADDRESS");
         require(address(_bank) != address(0), "INVALID_ADDRESS");
         factory = _factory;
         work = _work;
         bank = _bank;
+        devAddr = _devAddr;
+        manageAddr = _manageAddr;
     }
 
     struct MintCallbackData {
@@ -367,6 +372,27 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         }
 
         emit Swap(msg.sender, address(pool), amount0, amount1);
+    }
+
+    function claimCommision(address to) external {
+        (address[] memory tokens, uint[] memory commision) = work.claim(msg.sender);
+
+        bool hasCommision = false;
+        uint gpPercent = work.commPercent(msg.sender);
+        for(uint i = 0;i < tokens.length;i++) {
+            if(commision[i] > 0) {
+                uint devCommision = commision[i].mul(devPercent).div(10000);
+                bank.payCommision(tokens[i], devCommision, devAddr);
+
+                uint gpCommision = commision[i].mul(gpPercent).div(10000);
+                bank.payCommision(tokens[i], gpCommision, to);
+
+                hasCommision = true;
+            }
+        }
+
+        require(hasCommision, "NO COMMISION");
+        emit ClaimCommision(msg.sender, tokens, commision, devPercent, gpPercent);
     }
 
     // function distributeFee(address token, uint amount) internal nonReentrant {
