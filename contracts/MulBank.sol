@@ -32,17 +32,12 @@ contract MulBank is Permission {
     uint256 public cntOfPool;
     address public WETH9;
     address[] public pools;
-
-    struct Stat {
-        mapping (address => uint) total;
-    }
     
-
     event PoolInitialized(address indexed supplyToken, uint minAmount);
     event UpdateMinDeposit(address pool, uint minAmount);
     event SwitchPoolDeposit(address pool, bool enable);
     event SwitchWhiteList(address user, bool enable);
-    event SetUserBalance(address[] users, address[][] tokens, uint[][] amounts);
+    event SetUserBalance(address user, address token, uint amount);
     event Deposit(address indexed user, address indexed token, uint256 amount);
     event Withdraw(address indexed user, address indexed token, uint256 amount);
 
@@ -65,6 +60,7 @@ contract MulBank is Permission {
     modifier checkWithdraw(address token, uint amount) {
         require(period == Period.Withdraw, "CANNOT DEPOSIT NOW");
         require(userBalance[msg.sender][token] >= amount);
+        require(IERC20(token).balanceOf(address(this)) >= amount, "NOT ENOUGH AMOUNT");
         _;
     }
 
@@ -150,6 +146,8 @@ contract MulBank is Permission {
                 userBalance[users[i]][userTokens[i]] = userAmounts[i];
                 uint index = poolInfo[userTokens[i]].index;
                 total[index] = total[index].add(userAmounts[i]);
+
+                emit SetUserBalance(users[i], userTokens[i], userAmounts[i]); 
             }
         }
 
@@ -157,8 +155,6 @@ contract MulBank is Permission {
             uint index = poolInfo[pools[i]].index;
             require(total[index] <= IERC20(pools[i]).balanceOf(address(this)), "NOT ENOUGH MONEY");
         }
-
-        emit SetUserBalance(users, tokens, amounts);
     }
 
     function pay(
