@@ -22,11 +22,6 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 		int128 unbalance1;
 	}
 
-	struct Pool {
-		mapping (address => Info) users;
-		Info total;
-	}
-
 	struct Worker {
 		bool created;
 		uint workerId;
@@ -37,22 +32,27 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 		mapping(address => bool) used;
 	}
 
+
 	mapping (address => bool) public commonPools;
 	mapping (address => mapping(address => bool)) public whilelist;
-	mapping (address => Pool) public poolList;
+	mapping (uint => mapping(address => Info)) public poolInfo;
+	mapping (uint => mapping (address => mapping(address => Info))) public userInfo;
 	mapping (address => Worker) public workers;
 	mapping (address => mapping(address => uint)) public quotas;
-	mapping (address => bool) canSwap;
-	mapping (address => uint) commPercent;
+	mapping (address => bool) public canSwap;
+	mapping (address => uint) public commisionPercent;
 
-	mapping (address => mapping(address => int128)) public profits;
+	mapping (uint => mapping(address => mapping(address => int128))) public profits;
+
+	uint public devPercent = 1000;
 
 	// pools gp invest
-	mapping (address => Record) private poolRecord;
+	mapping (uint => mapping (address => Record)) private poolRecord;
 	// tokens gp invest
-	mapping (address => Record) private tokenRecord;
+	mapping (uint => mapping (address => Record)) private tokenRecord;
 
 	uint public cntOfWorker;
+	uint public period;
 
 	event AccountCreated(address indexed user, uint workerId);
 	event SetQuota(address worker, address[] tokens, uint[] amounts);
@@ -60,7 +60,8 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	event SwitchPool(address[] pools, bool[] enable);
 	event SwitchSwap(address[] workers, bool[] enable);
 	event SetWhiteList(address worker, address[] pools, bool[] enable);
-	event UpdatePercent(address worker, uint oldPercent, uint newPercent);
+	event UpdateGPPercent(address worker, uint oldPercent, uint newPercent);
+	event UpdateDevPercent(uint oldPercent, uint newPercent);
 
 	constructor(IERC721 _gpToken) {
 		require(address(_gpToken) != address(0), "INVALID_ADDRESS");
@@ -75,11 +76,16 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 			created: true,
 			workerId: cntOfWorker
 			});
-		commPercent[from] = 2000;
+		commisionPercent[from] = 2000;
 		emit AccountCreated(from, workerId);
         return this.onERC721Received.selector;
     }
 
+    function updateDevPercent(uint newPercent) external onlyOwner {
+    	require(newPercent >= 0 && newPercent < 10000, "INVALID PARAMS");
+    	emit UpdateDevPercent(devPercent, newPercent);
+    	devPercent = newPercent;
+    }
 
 	function setQuota(address worker, address[] memory tokens, uint[] memory amounts) external onlyOwner {
 		require(tokens.length == amounts.length, "INVALID FORMAT");
@@ -94,7 +100,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 			return 0;
 		}
 		
-		int128 profit = profits[worker][token];
+		int128 profit = profits[period][worker][token];
 		int128 quota = int128(quotas[worker][token]);
 		quota = quota + profit > 0 ? quota + profit: 0;
 		return uint(quota);
@@ -128,44 +134,51 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 			return (0, 0);
 		}
 
-		Info memory info = poolList[poolAddress].users[worker];
+		Info memory info = userInfo[period][poolAddress][worker];
 		return (int256(info.unbalance0), int256(info.unbalance1));
 	}
 
 	function updateCommisionPercent(address worker, uint newPercent) external onlyOwner {
-		emit UpdatePercent(worker, commPercent[worker], newPercent);
-		commPercent[worker] = newPercent;
+		require(newPercent <= 5000, "INVALID PERCENT");
+		emit UpdateGPPercent(worker, commisionPercent[worker], newPercent);
+		commisionPercent[worker] = newPercent;
 	}
 
 	function isEnable(address worker, address poolAddress) private view returns (bool) {
 		return commonPools[poolAddress] == true || whilelist[worker][poolAddress] == true;
 	}
 
+	function setPeriod(uint _period) external onlyOwner {
+		period = _period;
+	}
+
 	function settle(address worker, address poolAddress, address token0, address token1, int128 profit0, int128 profit1) external onlyPermission {
 		require(isEnable(worker, poolAddress), "NOT PERMIT");
 
-		profits[worker][token0] = profits[worker][token0] + profit0;
-		profits[worker][token1] = profits[worker][token1] + profit1;
-		Pool storage pool = poolList[poolAddress];
-		pool.users[worker].unbalance0 += profit0;
-		pool.users[worker].unbalance1 += profit1;
-		pool.total.unbalance0 += profit0;
-		pool.total.unbalance1 += profit1;
+		if(worker != address(0)) {
+			profits[period][worker][token0] = profits[period][worker][token0] + profit0;
+			profits[period][worker][token1] = profits[period][worker][token1] + profit1;
+			userInfo[period][poolAddress][worker].unbalance0 += profit0;
+			userInfo[period][poolAddress][worker].unbalance1 += profit1;
 
-		if(!tokenRecord[worker].used[token0]) {
-			tokenRecord[worker].used[token0] = true;
-			tokenRecord[worker].list.push(token0);
-		}
+			if(!tokenRecord[period][worker].used[token0]) {
+				tokenRecord[period][worker].used[token0] = true;
+				tokenRecord[period][worker].list.push(token0);
+			}
 
-		if(!tokenRecord[worker].used[token1]) {
-			tokenRecord[worker].used[token1] = true;
-			tokenRecord[worker].list.push(token1);
-		}
+			if(!tokenRecord[period][worker].used[token1]) {
+				tokenRecord[period][worker].used[token1] = true;
+				tokenRecord[period][worker].list.push(token1);
+			}
 
-		if(!poolRecord[worker].used[poolAddress]) {
-			poolRecord[worker].used[poolAddress] = true;
-			poolRecord[worker].list.push(poolAddress);
+			if(!poolRecord[period][worker].used[poolAddress]) {
+				poolRecord[period][worker].used[poolAddress] = true;
+				poolRecord[period][worker].list.push(poolAddress);
+			}
 		}
+		
+		poolInfo[period][poolAddress].unbalance0 += profit0;
+		poolInfo[period][poolAddress].unbalance1 += profit1;
 
 		emit Settle(worker, poolAddress, token0, token1, profit0, profit1);
 	}
@@ -173,22 +186,33 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	function claim(address worker) external onlyPermission returns (address[] memory tokens, uint[] memory commision) {
 		require(workers[worker].created, "NOT GP");
 
-		uint length = tokenRecord[worker].list.length;
-		tokens = new address[](2);
-		commision = new uint[](2);
+		uint length = tokenRecord[period][worker].list.length;
+		tokens = new address[](length);
+		commision = new uint[](length);
 		for(uint idx = 0;idx < length;idx++) {
-			address token = tokenRecord[worker].list[idx];
-			require(profits[worker][token] >= 0, "PROFIT MUST GREATER THAN ZERO");
+			address token = tokenRecord[period][worker].list[idx];
+			require(profits[period][worker][token] >= 0, "PROFIT MUST GREATER THAN ZERO");
 
 			tokens[idx] = token;
-			commision[idx] = uint(profits[worker][token]);
-			profits[worker][token] = 0;
+			commision[idx] = uint(profits[period][worker][token]);
+			profits[period][worker][token] = 0;
 		}
 
-		length = poolRecord[worker].list.length;
+		length = poolRecord[period][worker].list.length;
+		uint gpPercent = commisionPercent[worker];
+		require(gpPercent + devPercent <= 10000, "UNKNOWN ERROR");
+
 		for(uint idx = 0;idx < length;idx++) {
-			address poolAddress = poolRecord[worker].list[idx];
-			delete poolList[poolAddress].users[worker];
+			address poolAddress = poolRecord[period][worker].list[idx];
+
+			int128 unbalance0 = userInfo[period][poolAddress][worker].unbalance0 * (int128)(gpPercent + devPercent) / 10000;
+			int128 unbalance1 = userInfo[period][poolAddress][worker].unbalance1 * (int128)(gpPercent + devPercent) / 10000;
+
+			poolInfo[period][poolAddress].unbalance0 -= unbalance0;
+			poolInfo[period][poolAddress].unbalance1 -= unbalance1;
+
+			userInfo[period][poolAddress][worker].unbalance0 = 0;
+			userInfo[period][poolAddress][worker].unbalance1 = 0;
 		}
 	}
 }

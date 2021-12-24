@@ -11,7 +11,9 @@ interface IUniswapV3WorkCenter {
 
 	function claim(address worker) external returns (address[] memory tokens, uint[] memory commision);
 
-	function commPercent(address worker) external returns(uint);
+	function commisionPercent(address) external returns(uint);
+
+	function devPercent() external returns(uint);
 
 	function settle(address worker, address poolAddress, address token0, address token1, int128 profit0, int128 profit1) external; 
 }

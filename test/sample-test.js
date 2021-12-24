@@ -63,7 +63,7 @@ describe("Invest", function() {
     let usdc, eth, uni, gp, mul;
     let ERC20;
     let bank, work, factory, positionManager, positionDescripter, router, weth;
-    let deployer, lp1, lp2, gp1, gp2;
+    let deployer, lp1, lp2, gp1, gp2, reward;
     let poolAddress;
 
     async function initWork() {
@@ -79,11 +79,7 @@ describe("Invest", function() {
     async function initBank() {
       console.log("deployBank");
       await (await bank.addPermission(strategy.address)).wait();
-      await (await bank.initPool(usdc.address)).wait();
-      await (await bank.initPool(uni.address)).wait();
-      await (await bank.initPool(eth.address)).wait();
-      await (await bank.initPool(weth.address)).wait();
-
+      await (await bank.initPoolList([usdc.address, uni.address, eth.address, weth.address], [0,0,0,0])).wait();
       console.log("complete");
     }
 
@@ -96,9 +92,9 @@ describe("Invest", function() {
       await eth.transfer(lp2.address, toTokenAmount('1000000'));
       await uni.transfer(lp2.address, toTokenAmount('1000000'));
 
-      await usdc.transfer(gp1.address, toTokenAmount('1000000'));
-      await eth.transfer(gp1.address, toTokenAmount('1000000'));
-      await uni.transfer(gp1.address, toTokenAmount('1000000'));
+      // await usdc.transfer(gp1.address, toTokenAmount('1000000'));
+      // await eth.transfer(gp1.address, toTokenAmount('1000000'));
+      // await uni.transfer(gp1.address, toTokenAmount('1000000'));
 
       await usdc.approve(positionManager.address, constants.MaxUint256);
       await eth.approve(positionManager.address, constants.MaxUint256);
@@ -130,6 +126,9 @@ describe("Invest", function() {
     }
 
     async function depositToBank() {
+      // await (await bank.addRemains([usdc.address, eth.address], [toTokenAmount(100000), toTokenAmount(1000000)]))
+      await (await bank.switchWhiteList([lp1.address, lp2.address], [true, true]));
+
       await (await bank.connect(lp1).deposit(usdc.address, toTokenAmount('5000'))).wait();
       await (await bank.connect(lp2).deposit(usdc.address, toTokenAmount('5000'))).wait();
 
@@ -154,13 +153,13 @@ describe("Invest", function() {
         }
         let value = from.address===weth.address ? amount: 0;
         await (await router.exactInput(params, {gasLimit: 8000000, value: value})).wait();
-        console.log("swap complete");
+        // console.log("swap complete");
     }
 
     before(async () => {
         console.log("deploy coin");
 
-        [develop, lp1, lp2, gp1, gp2] = await ethers.getSigners()
+        [develop, lp1, lp2, gp1, gp2, reward] = await ethers.getSigners()
 
         ERC20 = await ethers.getContractFactory("Token");
         usdc = await ERC20.deploy("USDC", "Tether USDC", 18, 100000000);
@@ -195,7 +194,7 @@ describe("Invest", function() {
         work = await Work.deploy(gp.address);
 
         const Strategy = await ethers.getContractFactory("UniswapV3Strategy");
-        strategy     = await Strategy.deploy(factory.address, work.address, bank.address);
+        strategy     = await Strategy.deploy(factory.address, work.address, bank.address, reward.address, reward.address);
 
         await initBank();
         await initWork();
@@ -210,8 +209,8 @@ describe("Invest", function() {
             fee: FeeAmount.MEDIUM,
             tickLower: getMinTick(tickSpacing),
             tickUpper: getMaxTick(tickSpacing),
-            amount0Desired: toTokenAmount('80000'),
-            amount1Desired: toTokenAmount('80000'),
+            amount0Desired: toTokenAmount('30000'),
+            amount1Desired: toTokenAmount('30000'),
             amount0Min: 0,
             amount1Min: 0,
             recipient: develop.address,
@@ -255,9 +254,6 @@ describe("Invest", function() {
         console.log("add full liquidity");
         await addFullLiquidity();
 
-        
-
-
         console.log("create an account");
         // await (await work.connect(gp1).createAccount(1)).wait();
         // await (await work.connect(gp2).createAccount(2)).wait();
@@ -276,18 +272,18 @@ describe("Invest", function() {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
-            tickLower: -300,
-            tickUpper: 300,
-            amount0Desired: toTokenAmount('1000'),
-            amount1Desired: toTokenAmount('1000'),
+            tickLower: -60,
+            tickUpper: 60,
+            amount0Desired: toTokenAmount('10000'),
+            amount1Desired: toTokenAmount('10000'),
         }
         await (await strategy.connect(gp1).invest(param, {gasLimit: 8000000})).wait();
 
 
         console.log("simulate swap");
-        await swap(eth, usdc, toTokenAmount("300"));
+        // await swap(eth, usdc, toTokenAmount("300"));
         await swap(usdc, eth, toTokenAmount("2000"));
-        await swap(eth, usdc, toTokenAmount("1700"));
+        await swap(eth, usdc, toTokenAmount("2000"));
 
         console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
         balance eth: ${toMathAmount(await gp1.getBalance())}
@@ -320,6 +316,9 @@ describe("Invest", function() {
         let xx = await strategy.connect(gp1).callStatic.collect(0);
         console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));
 
+        // let xx2 = await work.poolList(poolAddress);
+        // console.log(111, xx2.total);
+
         // await (await strategy.connect(gp1).switching(0, swit, {gasLimit: 8000000})).wait()
 
         // let swit = {
@@ -329,7 +328,7 @@ describe("Invest", function() {
         //     amount1Desired: toTokenAmount('0.1'),
         // }
 
-        await (await strategy.connect(gp1).divest(0, {gasLimit: 8000000})).wait()
+        await (await strategy.divest(0, {gasLimit: 8000000})).wait()
         let swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
         console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
 
@@ -337,7 +336,7 @@ describe("Invest", function() {
           token0: t0.address,
           token1: t1.address,
           fee: FeeAmount.MEDIUM,
-          amountSpecified: toTokenAmount(10),
+          amountSpecified: toTokenAmount(3.5),
           amountOutMin: 0,
           amountInMax: 0,
           zeroOne: false
@@ -345,10 +344,59 @@ describe("Invest", function() {
 
       await (await strategy.connect(gp1).swap(swapEntity)).wait();
 
+      console.log(`strategy balance usdc: ${toMathAmount(await usdc.balanceOf(strategy.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(strategy.address))}
+        `)
+        console.log(`strategy balance usdc: ${toMathAmount(await usdc.balanceOf(strategy.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(strategy.address))}
+        `)
+
+      swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
+        console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
+        console.log("aaaa");
+        swapEntity = {
+          token0: t0.address,
+          token1: t1.address,
+          fee: FeeAmount.MEDIUM,
+          amountSpecified: toTokenAmount(2),
+          amountOutMin: 0,
+          amountInMax: 0,
+          zeroOne: true
+      }
+        await (await strategy.connect(gp1).swap(swapEntity)).wait();
+
       swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
         console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
         // console.log(aa);
-        xx = await strategy.connect(gp1).callStatic.collect(0);
-        console.log(toMathAmount(xx.fee0),toMathAmount(xx.fee1));
+
+        await strategy.connect(gp1).claimCommision(gp1.address);
+        console.log(`reward balance usdc: ${toMathAmount(await usdc.balanceOf(reward.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(reward.address))}
+        `)
+
+        console.log(`gp1 balance usdc: ${toMathAmount(await usdc.balanceOf(gp1.address))} 
+        balance eth: ${toMathAmount(await eth.balanceOf(gp1.address))}
+        `)
+
+        swapQuota = await work.getSwapQuota(gp1.address, poolAddress);
+        console.log(toMathAmount(swapQuota[0]), toMathAmount(swapQuota[1]));
+
+        poolInfo = await work.poolInfo(0, poolAddress);
+        console.log(toMathAmount(poolInfo[0]), toMathAmount(poolInfo[1]));
+        //t1 -> t0, 10t0, t1>0 t0<0
+          swapEntity = {
+            token0: t0.address,
+            token1: t1.address,
+            fee: FeeAmount.MEDIUM,
+            amountSpecified: toTokenAmount(10),
+            amountOutMin: 0,
+            amountInMax: toTokenAmount(100),
+            zeroOne: false
+        }
+
+        await (await strategy.swapByOwner(swapEntity)).wait();
+
+        poolInfo = await work.poolInfo(0, poolAddress);
+        console.log(toMathAmount(poolInfo[0]), toMathAmount(poolInfo[1]));
       });
 })

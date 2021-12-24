@@ -52,9 +52,9 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     IMulBank public bank;
     IUniswapV3WorkCenter public work;
     uint176 public _nextId = 0;
-    uint public devPercent = 1000;
     address public devAddr;
     address public manageAddr;
+    address private immutable original;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     
@@ -66,7 +66,9 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     event Switching(address indexed user, uint positionId, uint exit0, uint exit1, uint invest0, uint invest1, uint128 liquidity);
     event Collect(address indexed user, uint positionId, uint fee0, uint fee1);
     event Swap(address indexed user, address pool, int256 amount0, int256 amount1);
-    event ClaimCommision(address indexed user, address[] tokens, uint[] commision, uint devPercent, uint gpPercent);
+    event ClaimCommision(address indexed user, address[] tokens, uint[] commision, uint devPercent, uint gpPercent, address to);
+    event UpdateDev(address oldAddr, address newAddr);
+    event UpdateManage(address oldAddr, address newAddr);
 
     constructor(IUniswapV3Factory _factory, IUniswapV3WorkCenter _work, IMulBank _bank, address _devAddr, address _manageAddr) {
         require(address(_factory) != address(0), "INVALID_ADDRESS");
@@ -77,6 +79,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         bank = _bank;
         devAddr = _devAddr;
         manageAddr = _manageAddr;
+        original = address(this);
     }
 
     struct MintCallbackData {
@@ -91,7 +94,6 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         address token1;
         uint24 fee;
         address payer;
-        bool isGP;
     }
     
     struct MintParams {
@@ -121,21 +123,27 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         uint amount1Desired;
     }
 
-    modifier onlyEOA() {
-        require(msg.sender == tx.origin, 'not eoa');
-        _;
-      }
-
     modifier enable() {
         require(bank.isClosePeriod(), 'NOT CLOSE PERIOD NOW');
+        require(msg.sender == tx.origin && address(this) == original, 'not eoa');
         _;
     }
       
     modifier onlyOperator(uint positionId) {
         Position memory pos = positions[positionId];
-        require(msg.sender == pos.operator, "FORBIDDEN");
+        require(msg.sender == pos.operator || msg.sender == owner(), "FORBIDDEN");
         require(!pos.close && pos.tick.liquidity > 0, "ALREADY CLOSE");
         _;
+    }
+
+    function updateDev(address _devAddr) external onlyOwner {
+        emit UpdateDev(devAddr, _devAddr);
+        devAddr = _devAddr;
+    }   
+
+    function updateManage(address _manageAddr) external onlyOwner {
+        emit UpdateManage(manageAddr, _manageAddr);
+        manageAddr = _manageAddr;
     }
 
     function toInt128(int256 y) internal pure returns (int128 z) {
@@ -151,8 +159,8 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
         require(msg.sender == factory.getPool(decoded.token0, decoded.token1, decoded.fee), "INVALID MINT CALLBACK");
 
-        if (amount0Owed > 0) borrow(decoded.token0, decoded.payer, amount0Owed, msg.sender, true);
-        if (amount1Owed > 0) borrow(decoded.token1, decoded.payer, amount1Owed, msg.sender, true);
+        if (amount0Owed > 0) payFromBank(decoded.token0, decoded.payer, amount0Owed, msg.sender);
+        if (amount1Owed > 0) payFromBank(decoded.token1, decoded.payer, amount1Owed, msg.sender);
 
         work.settle(decoded.payer, msg.sender, decoded.token0, decoded.token1, -int128(amount0Owed), -int128(amount1Owed));
     }
@@ -166,17 +174,15 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         SwapCallbackData memory decoded = abi.decode(_data, (SwapCallbackData));
         require(msg.sender == factory.getPool(decoded.token0, decoded.token1, decoded.fee), "INVALID SWAP CALLBACK");
 
-        if(amount0Delta > 0) borrow(decoded.token0, decoded.payer, uint(amount0Delta), msg.sender, decoded.isGP);
-        if(amount1Delta > 0) borrow(decoded.token1, decoded.payer, uint(amount1Delta), msg.sender, decoded.isGP);
+        if(amount0Delta > 0) payFromBank(decoded.token0, decoded.payer, uint(amount0Delta), msg.sender);
+        if(amount1Delta > 0) payFromBank(decoded.token1, decoded.payer, uint(amount1Delta), msg.sender);
 
-        if(decoded.isGP) {
-            work.settle(decoded.payer, msg.sender, decoded.token0, decoded.token1, -int128(amount0Delta), -int128(amount1Delta));
-        } 
+        work.settle(decoded.payer, msg.sender, decoded.token0, decoded.token1, -int128(amount0Delta), -int128(amount1Delta));
     }
 
-    function borrow(address token, address payer, uint amount, address to, bool isGP) internal {
-        require(isGP && work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
-        bank.borrow(token, amount, to);
+    function payFromBank(address token, address payer, uint amount, address to) internal {
+        require(payer == address(0) || work.getRemainQuota(payer, token) >= amount, "NO ENOUGH QUOTA");
+        bank.pay(token, amount, to);
     } 
 
     function _settle(uint positionId, address poolAddress) internal nonReentrant {
@@ -189,8 +195,6 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
         IERC20(pos.token0).transfer(address(bank), balance0);
         IERC20(pos.token1).transfer(address(bank), balance1);
-        bank.notifyRepay(pos.token0, pos.debt0);
-        bank.notifyRepay(pos.token1, pos.debt1);
     }
 
     function _mint(MintParams memory params) internal 
@@ -347,7 +351,10 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         tick.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         tick.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
 
-        work.settle(msg.sender, address(pool), pos.token0, pos.token1, int128(fee0), int128(fee1));
+        IERC20(pos.token0).transfer(address(bank), fee0);
+        IERC20(pos.token1).transfer(address(bank), fee1);
+
+        work.settle(pos.operator, address(pool), pos.token0, pos.token1, int128(fee0), int128(fee1));
         emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
@@ -355,12 +362,12 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
         (int256 quota0, int256 quota1) = work.getSwapQuota(msg.sender, address(pool));
 
-        (amount0, amount1) = pool.swap(address(this), 
+        (amount0, amount1) = pool.swap(address(bank), 
             params.zeroOne, 
             params.amountSpecified, 
             params.zeroOne ? MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1, 
             abi.encode(SwapCallbackData(
-                {isGP: true, token0: params.token0, token1: params.token1, fee: params.fee, payer: msg.sender})));
+                {token0: params.token0, token1: params.token1, fee: params.fee, payer: msg.sender})));
         require((params.zeroOne && quota0 >= amount0) || (!params.zeroOne && quota1 >= amount1), "INVALID AMOUNT");
         bool exactInput = params.amountSpecified > 0 ;
         if(exactInput) {
@@ -374,34 +381,46 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Swap(msg.sender, address(pool), amount0, amount1);
     }
 
-    function claimCommision(address to) external {
-        (address[] memory tokens, uint[] memory commision) = work.claim(msg.sender);
+    function claimCommision(address to) external returns(address[] memory tokens, uint[] memory commision){
+        (tokens, commision) = work.claim(msg.sender);
 
         bool hasCommision = false;
-        uint gpPercent = work.commPercent(msg.sender);
+        uint gpPercent = work.commisionPercent(msg.sender);
+        uint devPercent = work.devPercent();
         for(uint i = 0;i < tokens.length;i++) {
             if(commision[i] > 0) {
                 uint devCommision = commision[i].mul(devPercent).div(10000);
-                bank.payCommision(tokens[i], devCommision, devAddr);
+                bank.pay(tokens[i], devCommision, devAddr);
 
                 uint gpCommision = commision[i].mul(gpPercent).div(10000);
-                bank.payCommision(tokens[i], gpCommision, to);
+                bank.pay(tokens[i], gpCommision, to);
 
                 hasCommision = true;
             }
         }
 
         require(hasCommision, "NO COMMISION");
-        emit ClaimCommision(msg.sender, tokens, commision, devPercent, gpPercent);
+        emit ClaimCommision(msg.sender, tokens, commision, devPercent, gpPercent, to);
     }
+ 
+    function swapByOwner(SwapParams memory params) onlyOwner external returns (int256 amount0, int256 amount1) {
+        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
 
-    // function distributeFee(address token, uint amount) internal nonReentrant {
-    //     if(amount > 0) {
-    //         uint toBank = amount.mul(9).div(10);
-    //         IERC20(token).transfer(address(bank), toBank);
-    //         // work.settle(msg.sender, token, 0, int128(toBank));
-    //         work.settle(msg.sender, token, int128(toBank));
-    //         IERC20(token).transfer(msg.sender, amount.sub(toBank));
-    //     }
-    // }
+        (amount0, amount1) = pool.swap(address(bank), 
+            params.zeroOne, 
+            params.amountSpecified, 
+            params.zeroOne ? MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1, 
+            abi.encode(SwapCallbackData(
+                {token0: params.token0, token1: params.token1, fee: params.fee, payer: address(0)})));
+        bool exactInput = params.amountSpecified > 0 ;
+        if(exactInput) {
+            uint amountOut = amount0 > 0 ? uint(-amount1): uint(-amount0);
+            require(amountOut >= params.amountOutMin, "SLIP");
+        } else {
+            uint amountIn = amount0 > 0 ? uint(amount0): uint(amount1);
+            require(amountIn <= params.amountInMax, "SLIP");
+        }
+
+        emit Swap(address(0), address(pool), amount0, amount1);
+    }
 }

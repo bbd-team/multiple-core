@@ -83,7 +83,7 @@ interface IERC20 {
 
 // File @openzeppelin/contracts/math/SafeMath.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -301,7 +301,7 @@ library SafeMath {
 
 // File @openzeppelin/contracts/utils/Address.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.2 <0.8.0;
 
@@ -494,7 +494,7 @@ library Address {
 
 // File @openzeppelin/contracts/token/ERC20/SafeERC20.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -571,7 +571,7 @@ library SafeERC20 {
 
 // File @openzeppelin/contracts/introspection/IERC165.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -599,7 +599,7 @@ interface IERC165 {
 
 // File @openzeppelin/contracts/token/ERC721/IERC721.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.2 <0.8.0;
 
@@ -730,7 +730,7 @@ interface IERC721 is IERC165 {
 
 // File @openzeppelin/contracts/token/ERC721/IERC721Receiver.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -755,7 +755,7 @@ interface IERC721Receiver {
 
 // File contracts/interfaces/IMulBank.sol
 
-// SPDX-License-Identifier: GPL-2.0-or-later
+// ""-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.7.0;
 
 interface IMulBank {
@@ -779,7 +779,7 @@ interface IMulBank {
 
 // File @openzeppelin/contracts/utils/Context.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -807,7 +807,7 @@ abstract contract Context {
 
 // File @openzeppelin/contracts/access/Ownable.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -878,7 +878,7 @@ abstract contract Ownable is Context {
 
 // File @openzeppelin/contracts/utils/EnumerableSet.sol@v3.4.1
 
-// SPDX-License-Identifier: MIT
+// ""-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -1179,7 +1179,7 @@ library EnumerableSet {
 
 // File contracts/base/Permission.sol
 
-// SPDX-License-Identifier: GPL-2.0-or-later
+// ""-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.7.0;
 
 
@@ -1225,7 +1225,7 @@ contract Permission is Ownable {
 
 // File contracts/UniswapV3WorkCenter.sol
 
-// SPDX-License-Identifier: GPL-2.0-or-later
+// ""-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.7.0;
 
 
