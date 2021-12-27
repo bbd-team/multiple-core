@@ -31,12 +31,9 @@ function toTokenAmount(amount, decimals = 18) {
     return new BN(amount).multipliedBy(new BN("10").pow(decimals)).toFixed()
 }
 
-async function addRemain() {
-  MulBank = await hre.ethers.getContractFactory("MulBank");
+async function addRemain(bank) {
   let bankContract = await hre.ethers.getContractAt("MulBank", bank);
   await (await bankContract.switchWhiteList(gpList, Array(gpList.length).fill(true))).wait();
-  // await (await bankContract.addRemains([DAI, UNI, USDC, ETH], 
-  //   [toTokenAmount("10000000"), toTokenAmount("10000000"), toTokenAmount("10000000", 6), toTokenAmount("10000000")])∂∂
     console.log("complete")
 }
 
@@ -108,6 +105,7 @@ async function main() {
 
   await deposit(mulBank);
   await addQuota(mulWork);
+  await (await mulBank.switchWhiteList(gpList, Array(gpList.length).fill(true))).wait();
 }
 
 async function addQuota(work) {
@@ -169,6 +167,14 @@ main()
     process.exit(1);
   });
 
+
+async function switchUser(bank = "0x7f390bD2E8c5694643bEDC06c2E5e5675c0114f6") {
+  let workContract = await hre.ethers.getContractAt("MulBank", bank);
+  await workContract.switchWhiteList(["0xA768267D5b04f0454272664F4166F68CFc447346"], [false])
+}
+
+// switchUser().then();
+// addRemain("0x61E1AE7C9E4fc5Cc86c5257d96B966cf6a0D0616").then();
 
 // switchPool().then();
 

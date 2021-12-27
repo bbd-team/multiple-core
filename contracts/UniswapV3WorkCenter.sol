@@ -34,7 +34,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 
 
 	mapping (address => bool) public commonPools;
-	mapping (address => mapping(address => bool)) public whilelist;
+	mapping (address => mapping(address => bool)) public whitelist;
 	mapping (uint => mapping(address => Info)) public poolInfo;
 	mapping (uint => mapping (address => mapping(address => Info))) public userInfo;
 	mapping (address => Worker) public workers;
@@ -124,7 +124,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	function setWhiteList(address worker, address[] memory pools, bool[] memory enable) external onlyOwner  {
 		require(pools.length == enable.length, "INVALID FORMAT");
 		for(uint i = 0;i < pools.length;i++) {
-			whilelist[worker][pools[i]] = enable[i];
+			whitelist[worker][pools[i]] = enable[i];
 		}
 		emit SetWhiteList(worker, pools, enable);
 	}
@@ -145,7 +145,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	}
 
 	function isEnable(address worker, address poolAddress) private view returns (bool) {
-		return commonPools[poolAddress] == true || whilelist[worker][poolAddress] == true;
+		return commonPools[poolAddress] == true || whitelist[worker][poolAddress] == true;
 	}
 
 	function setPeriod(uint _period) external onlyOwner {

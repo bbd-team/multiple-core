@@ -40,6 +40,7 @@ contract MulBank is Permission {
     event SetUserBalance(address user, address token, uint amount);
     event Deposit(address indexed user, address indexed token, uint256 amount);
     event Withdraw(address indexed user, address indexed token, uint256 amount);
+    event UpdatePeriod(Period period);
 
     receive() external payable {
         require(msg.sender == WETH9, 'Not WETH9');
@@ -155,6 +156,11 @@ contract MulBank is Permission {
             uint index = poolInfo[pools[i]].index;
             require(total[index] <= IERC20(pools[i]).balanceOf(address(this)), "NOT ENOUGH MONEY");
         }
+    }
+    
+    function setPeriod(Period _period) external onlyOwner {
+        period = _period;
+        emit UpdatePeriod(_period);
     }
 
     function pay(
