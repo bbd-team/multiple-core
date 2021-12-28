@@ -16,6 +16,7 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 import "./interfaces/IUniswapV3WorkCenter.sol";
 import "./interfaces/IMulBank.sol";
+import "./interfaces/IWETH9.sol";
 
 contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -51,9 +52,9 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
     IMulBank public bank;
     IUniswapV3WorkCenter public work;
+    address public WETH9;
     uint176 public _nextId = 0;
     address public devAddr;
-    address public manageAddr;
     address private immutable original;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
@@ -70,7 +71,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
     event UpdateDev(address oldAddr, address newAddr);
     event UpdateManage(address oldAddr, address newAddr);
 
-    constructor(IUniswapV3Factory _factory, IUniswapV3WorkCenter _work, IMulBank _bank, address _devAddr, address _manageAddr) {
+    constructor(IUniswapV3Factory _factory, IUniswapV3WorkCenter _work, IMulBank _bank, address _devAddr) {
         require(address(_factory) != address(0), "INVALID_ADDRESS");
         require(address(_work) != address(0), "INVALID_ADDRESS");
         require(address(_bank) != address(0), "INVALID_ADDRESS");
@@ -78,8 +79,8 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         work = _work;
         bank = _bank;
         devAddr = _devAddr;
-        manageAddr = _manageAddr;
         original = address(this);
+        WETH9 = bank.WETH9();
     }
 
     struct MintCallbackData {
@@ -138,13 +139,8 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
 
     function updateDev(address _devAddr) external onlyOwner {
         emit UpdateDev(devAddr, _devAddr);
-        devAddr = _devAddr;
+        devAddr = address(_devAddr);
     }   
-
-    function updateManage(address _manageAddr) external onlyOwner {
-        emit UpdateManage(manageAddr, _manageAddr);
-        manageAddr = _manageAddr;
-    }
 
     function toInt128(int256 y) internal pure returns (int128 z) {
         require((z = int128(y)) == y);
@@ -323,7 +319,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Switching(msg.sender, positionId, exit0, exit1, amount0, amount1, liquidity);
     }
 
-    function collect(uint positionId) public nonReentrant enable() onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
+    function collect(uint positionId) public nonReentrant onlyOperator(positionId) returns(uint128 fee0, uint128 fee1) {
         Position storage pos = positions[positionId];
         Tick storage tick = pos.tick;
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(pos.token0, pos.token1, pos.fee));
@@ -358,6 +354,16 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Collect(pos.operator, positionId, fee0, fee1);
     }
 
+    function payTo(address token, uint amount, address payable to) internal {
+        if(token == WETH9) {
+            bank.pay(token, amount, address(this));
+            IWETH9(WETH9).withdraw(amount);
+            to.transfer(amount);
+        } else {
+            bank.pay(token, amount, to);
+        }
+    }
+
     function swap(SwapParams memory params) external enable() returns (int256 amount0, int256 amount1) {
         IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(params.token0, params.token1, params.fee));
         (int256 quota0, int256 quota1) = work.getSwapQuota(msg.sender, address(pool));
@@ -390,11 +396,10 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         for(uint i = 0;i < tokens.length;i++) {
             if(commision[i] > 0) {
                 uint devCommision = commision[i].mul(devPercent).div(10000);
-                bank.pay(tokens[i], devCommision, devAddr);
+                payTo(tokens[i], devCommision, payable(devAddr));
 
                 uint gpCommision = commision[i].mul(gpPercent).div(10000);
-                bank.pay(tokens[i], gpCommision, to);
-
+                payTo(tokens[i], gpCommision, payable(to));
                 hasCommision = true;
             }
         }

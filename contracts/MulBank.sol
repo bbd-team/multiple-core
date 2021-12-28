@@ -144,11 +144,11 @@ contract MulBank is Permission {
             uint[] memory userAmounts = amounts[i];
             require(userTokens.length == userAmounts.length, "INVALID FORMAT");
             for(uint j = 0;j < userTokens.length;j++) {
-                userBalance[users[i]][userTokens[i]] = userAmounts[i];
-                uint index = poolInfo[userTokens[i]].index;
-                total[index] = total[index].add(userAmounts[i]);
+                userBalance[users[i]][userTokens[j]] = userAmounts[j];
+                uint index = poolInfo[userTokens[j]].index;
+                total[index] = total[index].add(userAmounts[j]);
 
-                emit SetUserBalance(users[i], userTokens[i], userAmounts[i]); 
+                emit SetUserBalance(users[i], userTokens[j], userAmounts[j]); 
             }
         }
 

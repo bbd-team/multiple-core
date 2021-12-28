@@ -194,7 +194,7 @@ describe("Invest", function() {
         work = await Work.deploy(gp.address);
 
         const Strategy = await ethers.getContractFactory("UniswapV3Strategy");
-        strategy     = await Strategy.deploy(factory.address, work.address, bank.address, reward.address, reward.address);
+        strategy     = await Strategy.deploy(factory.address, work.address, bank.address, reward.address);
 
         await initBank();
         await initWork();
@@ -388,7 +388,7 @@ describe("Invest", function() {
             token0: t0.address,
             token1: t1.address,
             fee: FeeAmount.MEDIUM,
-            amountSpecified: toTokenAmount(10),
+            amountSpecified: '                                                                                                                                                                                                                   -' + toTokenAmount(10),
             amountOutMin: 0,
             amountInMax: toTokenAmount(100),
             zeroOne: false
@@ -397,6 +397,6 @@ describe("Invest", function() {
         await (await strategy.swapByOwner(swapEntity)).wait();
 
         poolInfo = await work.poolInfo(0, poolAddress);
-        console.log(toMathAmount(poolInfo[0]), toMathAmount(poolInfo[1]));
+        // console.log(toMathAmount(poolInfo[0]), toMathAmount(poolInfo[1]));
       });
 })

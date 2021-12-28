@@ -36,6 +36,10 @@ module.exports = {
     mainnet: {
       url: `https://jsonrpc.maiziqianbao.net`,
       accounts: [`0x${PRIVATE_KEY}`],
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/f55e80a3523b48feb3ef8e4a0c9f5bcc`,
+      accounts: [`0x${PRIVATE_KEY}`],
     }
   }
 };
