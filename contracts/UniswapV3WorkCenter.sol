@@ -40,6 +40,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	mapping (address => Worker) public workers;
 	mapping (address => mapping(address => uint)) public quotas;
 	mapping (address => bool) public canSwap;
+	mapping (address => bool) public canClaim;
 	mapping (address => uint) public commisionPercent;
 
 	mapping (uint => mapping(address => mapping(address => int128))) public profits;
@@ -59,6 +60,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	event Settle(address worker, address poolAddress, address token0, address token1, int128 profit0, int128 profit1);
 	event SwitchPool(address[] pools, bool[] enable);
 	event SwitchSwap(address[] workers, bool[] enable);
+	event SwitchClaim(address[] workers, bool[] enable);
 	event SetWhiteList(address worker, address[] pools, bool[] enable);
 	event UpdateGPPercent(address worker, uint oldPercent, uint newPercent);
 	event UpdateDevPercent(uint oldPercent, uint newPercent);
@@ -77,6 +79,8 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 			workerId: cntOfWorker
 			});
 		commisionPercent[from] = 2000;
+		canSwap[from] = true;
+		canClaim[from] = true;
 		emit AccountCreated(from, workerId);
         return this.onERC721Received.selector;
     }
@@ -113,6 +117,13 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 		emit SwitchSwap(users, enable);
 	}
 
+	function switchClaim(address[] memory users, bool[] memory enable) external onlyOwner {
+		for(uint i = 0;i < users.length;i++) {
+			canClaim[users[i]] = enable[i];
+		}
+		emit SwitchClaim(users, enable);
+	}
+
 	function switchPool(address[] memory pools, bool[] memory enable) external onlyOwner {
 		require(pools.length == enable.length, "INVALID FORMAT");
 		for(uint i = 0;i < pools.length;i++) {
@@ -134,6 +145,9 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 			return (0, 0);
 		}
 
+		if(!canSwap[worker]) {
+			return (0, 0);
+		}
 		Info memory info = userInfo[period][poolAddress][worker];
 		return (int256(info.unbalance0), int256(info.unbalance1));
 	}

@@ -59,7 +59,7 @@ contract MulBank is Permission {
     }
 
     modifier checkWithdraw(address token, uint amount) {
-        require(period == Period.Withdraw, "CANNOT DEPOSIT NOW");
+        require(period == Period.Withdraw, "CANNOT WITHDRAW NOW");
         require(userBalance[msg.sender][token] >= amount);
         require(IERC20(token).balanceOf(address(this)) >= amount, "NOT ENOUGH AMOUNT");
         _;
@@ -137,6 +137,7 @@ contract MulBank is Permission {
     }
 
     function setUserBalance(address[] memory users, address[][] memory tokens, uint[][] memory amounts) external onlyOwner {
+        require(period == Period.Settle, "CANNOT SETTLE NOW");
         uint userCnt = users.length;
         uint[] memory total = new uint[](pools.length);
         for(uint i = 0;i < userCnt;i++) {
@@ -147,7 +148,6 @@ contract MulBank is Permission {
                 userBalance[users[i]][userTokens[j]] = userAmounts[j];
                 uint index = poolInfo[userTokens[j]].index;
                 total[index] = total[index].add(userAmounts[j]);
-
                 emit SetUserBalance(users[i], userTokens[j], userAmounts[j]); 
             }
         }
