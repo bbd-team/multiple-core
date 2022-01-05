@@ -391,7 +391,7 @@ contract UniswapV3Strategy is Ownable, ReentrancyGuard {
         emit Swap(msg.sender, address(pool), amount0, amount1);
     }
 
-    function claimCommision(address to) enable() external returns(address[] memory tokens, uint[] memory commision){
+    function claimCommision(address to) external enable() returns(address[] memory tokens, uint[] memory commision){
         (tokens, commision) = work.claim(msg.sender);
 
         bool hasCommision = false;
