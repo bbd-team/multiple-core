@@ -199,6 +199,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 
 	function claim(address worker) external onlyPermission returns (address[] memory tokens, uint[] memory commision) {
 		require(workers[worker].created, "NOT GP");
+		require(canClaim[worker], "CAN NOT CLIAM");
 
 		uint length = tokenRecord[period][worker].list.length;
 		tokens = new address[](length);
