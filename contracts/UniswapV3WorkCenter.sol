@@ -64,6 +64,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	event SetWhiteList(address worker, address[] pools, bool[] enable);
 	event UpdateGPPercent(address worker, uint oldPercent, uint newPercent);
 	event UpdateDevPercent(uint oldPercent, uint newPercent);
+	event SetPeriod(uint newPeriod);
 
 	constructor(IERC721 _gpToken) {
 		require(address(_gpToken) != address(0), "INVALID_ADDRESS");
@@ -111,6 +112,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	}
 
 	function switchSwap(address[] memory users, bool[] memory enable) external onlyOwner {
+		require(users.length == enable.length, "INVALID FORMAT");
 		for(uint i = 0;i < users.length;i++) {
 			canSwap[users[i]] = enable[i];
 		}
@@ -118,6 +120,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 	}
 
 	function switchClaim(address[] memory users, bool[] memory enable) external onlyOwner {
+		require(users.length == enable.length, "INVALID FORMAT");
 		for(uint i = 0;i < users.length;i++) {
 			canClaim[users[i]] = enable[i];
 		}
@@ -164,6 +167,7 @@ contract UniswapV3WorkCenter is Permission, IERC721Receiver {
 
 	function setPeriod(uint _period) external onlyOwner {
 		period = _period;
+		emit SetPeriod(_period);
 	}
 
 	function settle(address worker, address poolAddress, address token0, address token1, int128 profit0, int128 profit1) external onlyPermission {
