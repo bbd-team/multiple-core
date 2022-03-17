@@ -38,7 +38,7 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
     },
     rinkeby: {
-      url: `https://rinkeby.infura.io/v3/f55e80a3523b48feb3ef8e4a0c9f5bcc`,
+      url: `https://rinkeby.infura.io/v3/41582367836044158e731d71fd74aa84`,
       accounts: [`0x${PRIVATE_KEY}`],
     }
   }

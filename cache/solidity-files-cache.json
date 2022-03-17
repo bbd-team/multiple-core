@@ -142,46 +142,6 @@
         "Context"
       ]
     },
-    "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/MulWork.sol": {
-      "lastModificationDate": 1630043985526,
-      "contentHash": "b40889fe137bdc10fdcfdc394ba46066",
-      "sourceName": "contracts/MulWork.sol",
-      "solcConfig": {
-        "version": "0.7.6",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
-        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
-        "./interfaces/IMulBank.sol",
-        "./base/Permission.sol"
-      ],
-      "versionPragmas": [
-        "^0.7.0"
-      ],
-      "artifacts": [
-        "MulWork"
-      ]
-    },
     "/Users/wujiajun/Documents/code/dex/mul.finance/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
       "lastModificationDate": 1626019164775,
       "contentHash": "e0a41531d159d3a32f84b7a3ecf9fabb",
@@ -1798,8 +1758,8 @@
       ]
     },
     "/Users/wujiajun/Documents/code/dex/mul.finance/contracts/UniswapV3WorkCenter.sol": {
-      "lastModificationDate": 1641367186278,
-      "contentHash": "5837d29d4a640dba1f8b72b57e32c756",
+      "lastModificationDate": 1644906259778,
+      "contentHash": "32e13372f902baf9a531068b6a3afc02",
       "sourceName": "contracts/UniswapV3WorkCenter.sol",
       "solcConfig": {
         "version": "0.7.6",
