@@ -5,16 +5,17 @@
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 const uniFactory = "0x80a39Ed431B27F53587eC55331e41DadA01B8e96";
-const DAI = "0x17B63a4DDFbA78703A33756D8b93a91D7Bc6a13d";
-const UNI = "0x7bfeAf9EE141d06aDc9c85DeB8d3b72117C316CE";
-const USDC = "0xb16825b4cD5034Dc0A4fC00e11A4653B07e6C668";
-const WETH9 = "0xEAd038CEC675382A1f9e281B2FBdDB970C3f1105";
+const DAI = "0x0a637e5fc9ef09ec7895923b90b5b8b88676e0e5";
+const UNI = "0x68880631882c62121eebec75041e7be3544a553f";
+const USDC = "0x6eea1236e58150c1a6598b4b30d8776fc59763c1";
+const WETH9 = "0xc778417e063141139fce010982780140aa0cd5ab";
 const IZI = "0xcd20fef1cff6355eb7cb9bc7a2f17fa4d84b6095";
 
+const coinList = [USDC, UNI, WETH9, DAI, IZI];
 const bank = "0x12435D6366c3DC367f8E3A0B9fc9E1A603ECFDc1"
-const gpList = ["0x9F93bF49F2239F414cbAd0e4375c1e0E7AB833a2", "0xd7f4a04c736cC1C5857231417E6cB8Da9cAdbEC7", "0xA768267D5b04f0454272664F4166F68CFc447346", "0xfdA074b94B1e6Db7D4BEB45058EC99b262e813A5",
+const gpList = ["0x2D83750BDB3139eed1F76952dB472A512685E3e0", "0xd7f4a04c736cC1C5857231417E6cB8Da9cAdbEC7", "0xA768267D5b04f0454272664F4166F68CFc447346", "0xfdA074b94B1e6Db7D4BEB45058EC99b262e813A5",
  "0xc03C12101AE20B8e763526d6841Ece893248a069", "0x3c5bae74ecaba2490e23c2c4b65169457c897aa0",
-  "0x3897A13FbC160036ba614c07D703E1fCbC422599", "0x089224e3ce16b04f3749201c1c9385c821a83545"]
+  "0x3897A13FbC160036ba614c07D703E1fCbC422599"]
 
 let BN = require("bignumber.js");
 
@@ -22,12 +23,13 @@ let Pop721;
 let MulBank;
 let MulWork;
 let ERC20;
-let owner = "0x9F93bF49F2239F414cbAd0e4375c1e0E7AB833a2";
+let owner = "0x2D83750BDB3139eed1F76952dB472A512685E3e0";
 
 
-const poolList = ["0x6ae51C31940B678233Ad2F2e1F40adF58B36aCBE",
- "0x0F6d297dD4CDaaC6f5539D4252d0C79aFe881461", "0xbB2d74a5286591C65C0D33D57c3D87726FDC034D",
-  "0x1b336682a69eB5AcCb9651C225538d10df10B60C", "0x6b52025D83d47cA9a08dc078f803cf767895c42E", "0x1e3406923cc4c19d47a2f09b4cd14edef11d25de", ""]
+const poolList = ["0x660e1cadc3aa204ea063f14e3ca8efea19f2d42a",
+ "0xb8f242266520ac910b6a8161eb3c4655e5c3c784", "0xdca4da2e137fba8aca8c14934da33edf9ab165af",
+  "0xe01aaaea7eaccc19674aa13bbcbaea2add3bce6d", "0xea8b164aa3e589c864a468a917281ff07e2ef683", 
+  "0x1e3406923cc4c19d47a2f09b4cd14edef11d25de", "0x089224e3ce16b04f3749201c1c9385c821a83545"]
 
 function toTokenAmount(amount, decimals = 18) {
     return new BN(amount).multipliedBy(new BN("10").pow(decimals)).toFixed()
@@ -78,20 +80,21 @@ async function main() {
   console.log("start");
   // WETH9 = await WETH.deploy();
   const pop721 = await Pop721.deploy("Multiple GP", "GP", "https://www.multiple.fi");
-  console.log(1);
+  console.log(1, pop721.address);
   const mulBank = await MulBank.deploy(WETH9);
   const mulWork = await MulWork.deploy(pop721.address);
 
   console.log("deploy");
-  await (await mulBank.initPoolList([USDC, UNI, WETH9, DAI, IZI], [0,0,0,0])).wait();
+  await (await mulBank.initPoolList(coinList, Array(coinList.length).fill(0))).wait();
 
   const Strategy = await hre.ethers.getContractFactory("UniswapV3Strategy");
-  const strategy = await Strategy.deploy(uniFactory, mulWork.address, mulBank.address, owner, owner);
+  const strategy = await Strategy.deploy(uniFactory, mulWork.address, mulBank.address, owner);
 
+  console.log("init");
   await (await mulBank.addPermission(strategy.address)).wait();
   await (await mulWork.addPermission(strategy.address)).wait();
 
-  await mulWork.switchPool(poolList, Array(poolList.length).fill(true));
+  await (await mulWork.switchPool(poolList, Array(poolList.length).fill(true))).wait();
 
   for(let gp of gpList) {
     let tokenId = Math.floor(Math.random() * 1000000);
@@ -112,11 +115,11 @@ async function main() {
 }
 
 async function addQuota(work) {
-  let workContract = await hre.ethers.getContractAt("UniswapV3WorkCenter", work.address);
+  let workContract = await hre.ethers.getContractAt("UniswapV3WorkCenter", work);
 
   for(let gp of gpList) {
-    await workContract.setQuota(gp, [DAI, UNI, USDC, WETH9], 
-    [toTokenAmount("10000000"), toTokenAmount("10000000"), toTokenAmount("10000000", 6), toTokenAmount("10000000")]);
+    await workContract.setQuota(gp, coinList,
+    [toTokenAmount("10000000"), toTokenAmount("10000000"), toTokenAmount("10000000", 6), toTokenAmount("10000000"), toTokenAmount("10000000")]);
 
     // for(let token of [DAI, UNI, USDC, WETH9]) {
     //   let tokenContract = await hre.ethers.getContractAt("Token", token);
@@ -202,7 +205,7 @@ async function addNewUser(work, pop721, gp) {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main()
+addQuota("0x95c72417F57dF505B71DB28c79e3D3d9b3bA4187")
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
